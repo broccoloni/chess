@@ -30,13 +30,15 @@ class Piece
 		glm::vec2 tileToPos(glm::vec2 tile);
 
 		bool isBeingHeld() { return m_beingHeld; }
-		bool isClickedOn() { return m_clickedOn; }		
+		bool isClickedOn() { return m_clickedOn; }
+        bool wasJustMoved() { return m_justMoved; }        
 		void hold() { m_beingHeld = true; }
 		void drop() { m_beingHeld = false; }
 		void clickOn() { m_clickedOn = true; }
 		void clickOff() { m_clickedOn = false; }
-		void setMoves(std::vector<glm::vec2> moves) { m_moves = moves; }
-		void madeMove() { m_timesMoved += 1; }
+        void wasNotJustMoved() { m_justMoved = false; }
+        void setMoves(std::vector<glm::vec2> moves) { m_moves = moves; }
+		void move(int x, int y);
 		std::vector<glm::vec2> moves() { return m_moves; }
 		
 		bool isAMove(int x, int y);
@@ -45,7 +47,7 @@ class Piece
 	private:
 		bool m_beingHeld;
 		bool m_clickedOn;
-		
+        bool m_justMoved;		
 		int m_pieceType;
 		int m_pieceColour;
 		int m_boardStart;

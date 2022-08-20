@@ -5,7 +5,8 @@
 Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, std::string texturePath){
 	m_beingHeld = false;
 	m_clickedOn = false;
-	m_boardStart = boardStart;
+    m_justMoved = false;
+    m_boardStart = boardStart;
 	m_squareSize = squareSize;
 	m_pieceColour = pieceColour;
 	m_pieceType = pieceType;
@@ -40,6 +41,15 @@ void Piece::draw(SpriteBatch& spriteBatch, int turnColour){
 
 glm::vec2 Piece::tileToPos(glm::vec2 tile){
         return glm::vec2(m_boardStart+tile.x*m_squareSize, m_boardStart+tile.y*m_squareSize);
+}
+
+void Piece::move(int x, int y){
+    std::cout<<"Moving piece at "<<(int)m_boardPos.x<<", "<<(int)m_boardPos.y<<" to "<<x<<", "<<y<<std::endl;
+    m_justMoved = true;
+    m_timesMoved += 1;
+    setBoardPos(x,y);
+    setPos(tileToPos(m_boardPos));
+    clickOff();
 }
 
 bool Piece::isAMove(int x, int y){

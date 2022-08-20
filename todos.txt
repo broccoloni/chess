@@ -1,4 +1,5 @@
-Need to make it so that en passant can only happen right after a piece was moved, not any time after the first double move of the pawn
+finish prune for king check
+make function to prune moves for pinned pieces
 Need to add checks, avoiding checks etc.
 Need to make function that removes piece/keep track of which pieces are taken. It would be nice to display the taken pieces as well
 Change the auto flip board to a button

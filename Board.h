@@ -17,9 +17,13 @@ class Board
 		Piece* isOccupied(glm::vec2 tile);
 		Piece* isOccupied(int x, int y);
 		void updateBoard();
-		void calculateMoves(Piece* piece);
+        void resetAttackers();
+        void calculateMoves(Piece* piece, int *** attackers, bool setPieceMoves = true);
 		void calculateAllMoves();
-		bool isDefended(int x, int y, int colour);
+        bool doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move);
+        void pruneMovesForCheck(Piece* king);
+        int isAttacked(int colour, int x, int y);
+        int isAttacked(int colour, glm::vec2 pos);
 		glm::vec2 tileToPos(glm::vec2 tile);
 		void setPiece(int x, int y, Piece* piece) { m_pieces[x][y] = piece; }
 		void setPiece(glm::vec2 pos, Piece* piece) { m_pieces[(int)pos.x][(int)pos.y] = piece; }
@@ -30,7 +34,8 @@ class Board
 		void tempMovePiece(Piece* piece, int x, int y);
 		void tempMovePiece(Piece* piece, glm::vec2 pos);
 		void resetPiece(Piece* piece);
-		bool isOnBoard(glm::vec2 pos);
+        void resetJustMoved(int turnColour);
+        bool isOnBoard(glm::vec2 pos);
 		bool isOnBoard(int x, int y);
 		int isKingInCheck(Piece* king);
 
@@ -41,6 +46,7 @@ class Board
 		GLTexture m_darkSquare;
 		GLTexture m_moveTexture;
 		Piece* m_pieces[8][8];
-		std::vector<Piece *> m_takenPieces;
+        int m_attackers[2][8][8]; //each player x 8 x 8 board
+        std::vector<Piece *> m_takenPieces;
 		bool m_verbose;		
 };
