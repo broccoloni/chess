@@ -1,13 +1,13 @@
-#version 130
+#version 120
 
-in vec2 vertPosition;
+attribute vec2 vertPosition;
 
-in vec4 vertColour;
-in vec2 vertUV;
+attribute vec4 vertColour;
+attribute vec2 vertUV;
 
-out vec2 fragPosition;
-out vec4 fragColour;
-out vec2 fragUV;
+varying vec2 fragPosition;
+varying vec4 fragColour;
+varying vec2 fragUV;
 
 uniform mat4 P;
 

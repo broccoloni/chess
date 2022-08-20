@@ -111,67 +111,63 @@ Piece* Board::isOccupied(int x, int y){
 	else return m_pieces[x][y];
 }
 
-void Board::calculateMoves(Piece* piece, int turnColour){
-	std::vector<glm::vec2> moves;
+void Board::calculateMoves(Piece* piece){
+    std::vector<glm::vec2> moves;
 	glm::vec2 pos = piece -> boardPos();
 	glm::vec2 move;
-	Piece* otherPiece;
-	if (turnColour != -1){
+    int otherColour=1;
+    int direction = 1;
+    if (piece->colour() == 1) {
+        otherColour = 0;
+        direction = -1;
+    }
 
-	}
-	else
-	{
 	switch (piece->type()){
-                case 0: //pawns
+        case 0: //pawns
 		{
-        		int otherColour=1;
-			int direction = 1;
-			int fifthRow = 4;
-        		if (piece->colour() == 1) {
-				otherColour -= 1;
-				direction = -1;
-				fifthRow = 3;
-			}
-			//first move
+
+            //first move
 			move = pos+glm::vec2(0,2*direction);   
-			if (piece->timesMoved() == 0 && isOnBoard(move)){
-	                                moves.push_back(move);
-       	                }
-	
+			if (piece->timesMoved() == 0 && isOnBoard(move) && isOccupied(move)==nullptr){
+                moves.push_back(move);
+            }	
 			//regular move
 			move = pos+glm::vec2(0,direction);   
-			if (isOnBoard(move)){
-                        	moves.push_back(move);
+			if (isOnBoard(move) && isOccupied(move)==nullptr){
+                moves.push_back(move);
 			}	 
 			//taking on the right
 			move = pos+glm::vec2(1,direction);   
-			if (isOnBoard(move)){
-				moves.push_back(move);
+			if (isOnBoard(move) && isOccupied(move) != nullptr){
+                if (isOccupied(move)->colour() == otherColour) moves.push_back(move);
 	 		}
 			//taking on the left
 			move = pos+glm::vec2(-1,direction);   
-			if (isOnBoard(move)){
-                	       	moves.push_back(move);
+			if (isOnBoard(move)&& isOccupied(move) != nullptr){
+                if (isOccupied(move)->colour() == otherColour) moves.push_back(move);
 			}
-			//en passent on the right
-			move = pos+glm::vec2(1,direction);   
-			if ((isOccupied(move)==nullptr) && (isOccupied(pos+glm::vec2(1,0))!= nullptr) && isOnBoard(move)){
-				otherPiece = m_pieces[(int)pos.x+1][(int)pos.y];
-				if (otherPiece -> type() == 0 && otherPiece -> colour() == otherColour && otherPiece -> boardPos().y == fifthRow && otherPiece -> timesMoved() == 1){
-					moves.push_back(move);
-				}
-			}
-	
-			//en passent on the left
-			move = pos+glm::vec2(-1,direction);   
-			if ((isOccupied(move)==nullptr) && (isOccupied(pos+glm::vec2(-1,0))!= nullptr) && isOnBoard(move)){
-				otherPiece = m_pieces[(int)pos.x-1][(int)pos.y];
-				if (otherPiece -> type() == 0 && otherPiece -> colour() == otherColour && otherPiece -> boardPos().y == fifthRow && otherPiece -> timesMoved() == 1){
-					moves.push_back(move);
-				}
-			}
-			break;
-		}
+		    
+            //en passant on the left
+            int fifthrank = 4 - piece->colour();
+            Piece* sidepawn = isOccupied(pos+glm::vec2(-1,0));
+            move = pos+glm::vec2(-1,direction);
+            if (sidepawn != nullptr){
+                if (sidepawn->type() == 0 && sidepawn->timesMoved() == 1 
+                       && (int)sidepawn->boardPos().y == fifthrank && isOccupied(move) == nullptr){  
+                    moves.push_back(move);
+                }
+            }
+		    //en passant on the right
+            sidepawn = isOccupied(pos+glm::vec2(1,0));
+            move = pos+glm::vec2(1,direction);
+            if (sidepawn != nullptr){
+                if (sidepawn->type() == 0 && sidepawn->timesMoved() == 1 
+                       && (int)sidepawn->boardPos().y == fifthrank && isOccupied(move) == nullptr){  
+                    moves.push_back(move);
+                }
+            }
+            break;
+        }
 		case 1: //rooks
 		{
 			bool blocked;
@@ -180,7 +176,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(0,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -194,7 +190,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(0,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -208,7 +204,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,0);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -222,7 +218,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,0);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -231,7 +227,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 					}
 				}
 			}
-			break;
+            break;
 		}
 		case 2: //knights
 		{
@@ -241,14 +237,14 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 						if ((i != 0 && j != 0) && (abs(i) == 2 || abs(j) == 2)){
 							move = pos + glm::vec2(i,j);
 							if (isOnBoard(move)){
-								moves.push_back(move);
+                                if (isOccupied(move) == nullptr) moves.push_back(move);
+                                else if (isOccupied(move)->colour() == otherColour) moves.push_back(move);
 							}
 						}
 					}
 				}
 			}
-
-			break;
+            break;
 		}
 		case 3: //bishops
 		{
@@ -258,7 +254,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -273,7 +269,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -288,7 +284,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -303,7 +299,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -313,7 +309,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				
 				}
 			}
-			break;
+            break;
 		}
 		case 4: //queens
 		{
@@ -323,7 +319,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(0,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -337,7 +333,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(0,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -351,7 +347,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,0);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -365,7 +361,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,0);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -379,7 +375,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -394,7 +390,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(i,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -409,7 +405,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -424,7 +420,7 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				move = pos+glm::vec2(-i,-i);
 				if (!blocked){
 					if (isOccupied(move) == nullptr && isOnBoard(move)) moves.push_back(move);
-					else if (isOnBoard(move)){
+					else if (isOnBoard(move) && isOccupied(move)->colour() == otherColour){
 						moves.push_back(move);	
 						blocked = true;
 					}
@@ -434,58 +430,68 @@ void Board::calculateMoves(Piece* piece, int turnColour){
 				
 				}
 			}
-			break;
+            break;
 		}
-		case 5: //kings
-		{
+		case 5: //kings NEED TO CHECK IF WHEN KING TAKES PIECE ITS DEFENDED AND IF ATTACKING PIECES BLOCK CASTLING
+        //ALSO CHECK IF KING IS IN CHECK AND CALCULATE MOVES APPROPRIATELY
+        {
+            //Regular Moves
 			for (int i = -1; i < 2; i++) {
 				for (int j = -1; j < 2; j++){
 					if (!(i == 0 && j == 0)){
 						move = pos + glm::vec2(i,j);
 						if (isOnBoard(move)){
-							moves.push_back(move);
+                            if (isOccupied(move) == nullptr) moves.push_back(move);
+                            else if (isOccupied(move)->colour() == otherColour) moves.push_back(move);
 						}
 					}	
 				}
 			}
+            //Castling
 			if (piece->timesMoved() == 0){
 				bool blocked;
+                Piece* rook;
 				//castling left
 				blocked = false;
 				//check if there is a piece in the corner
-				otherPiece = m_pieces[0][(int)piece->boardPos().y];
-				if (otherPiece != nullptr){
+				rook = m_pieces[0][(int)pos.y];
+				if (rook != nullptr){
 					//if its a rook that hasn't been moved
-					if (otherPiece->type() == 1 && otherPiece->timesMoved() == 0){
-						for (int i = piece->boardPos().x-1; i > 0; i--){
-							if (m_pieces[i][(int)piece->boardPos().y] != nullptr) blocked = true;
+					if (rook->type() == 1 && rook->timesMoved() == 0){
+                        //Check if pieces are between rook and king
+						for (int i = pos.x-1; i > 0; i--){
+							if (isOccupied(i,(int)pos.y) != nullptr) blocked = true;
 						}
 						if (blocked == false){
-							moves.push_back(piece->boardPos() + glm::vec2(-2,0));
+							moves.push_back(pos + glm::vec2(-2,0));
 						}
 					}
 				}
 				//castling right
 				blocked = false;
 				//check if there is a piece in the corner
-				otherPiece = m_pieces[7][(int)piece->boardPos().y];
-				if (otherPiece != nullptr){
+				rook = m_pieces[7][(int)pos.y];
+				if (rook != nullptr){
 					//if its a rook that hasn't been moved
-					if (otherPiece->type() == 1 && otherPiece->timesMoved() == 0){
-						for (int i = piece->boardPos().x+1; i < 7; i++){
-							if (m_pieces[i][(int)piece->boardPos().y] != nullptr) blocked = true;
+					if (rook->type() == 1 && rook->timesMoved() == 0){
+						for (int i = pos.x+1; i < 7; i++){
+							if (isOccupied(i,(int)pos.y) != nullptr) blocked = true;
 						}
 						if (blocked == false){
-							moves.push_back(piece->boardPos() + glm::vec2(2,0));
+							moves.push_back(pos + glm::vec2(2,0));
 						}
 					}
 				}
 			}
-
-			break;
+            break;
 		}
 	}
-	}
+    //std::cout<<"Calculating moves for piece type "<<piece->type()<<" at "<<(int) pos[0]<<", "<<(int) pos[1]<<std::endl;
+    //std::cout<<"All moves:"<<std::endl;
+    //for (unsigned int i = 0; i < moves.size();i++){
+    //    std::cout<<"Move "<<i<<": "<< moves[i][0]<<", "<<moves[i][1]<<std::endl; 
+    //}
+    //std::cout<<std::endl;
 	piece -> setMoves(moves);
 }
 
@@ -558,7 +564,6 @@ void Board::movePiece(Piece* piece, int x, int y, int turnColour){
 	piece->setPos(piece->tileToPos(piece->boardPos()));
 	piece->clickOff();
 	calculateAllMoves();	
-	validateAllMoves(turnColour);
 }
 
 void Board::tempMovePiece(Piece* piece, int x, int y){
@@ -580,69 +585,8 @@ void Board::calculateAllMoves(){
 	}
 }
 
-void Board::validateAllMoves(int turnColour){
-	if (m_verbose) std::cout <<"***\tNEW VALIDATION\t***"<<std::endl;
-	std::vector<glm::vec2> validMoves;
-	//Note: must validate king moves first so that other moves
-	//such as pawn attacking moves don't get deleted
-	int numMoves = 0;
-	Piece* king;
-	for (int i = 0; i < 8; i++){
-		for (int j = 0; j < 8; j++){
-			if (m_pieces[i][j] != nullptr){
-				if (m_pieces[i][j] -> type() == 5){
-					if (m_pieces[i][j]->colour() == turnColour) king = m_pieces[i][j];
-					for (unsigned int k = 0; k < m_pieces[i][j]->moves().size(); k++){
-						if (isValidMove(m_pieces[i][j]->moves()[k], m_pieces[i][j], nullptr)){
-							validMoves.push_back(m_pieces[i][j]->moves()[k]);
-							numMoves += 1;
-						}
-					}
-					m_pieces[i][j]->setMoves(validMoves);
-				}
-			}
-			validMoves.clear();
-		}
-	}
-	//can't re-validate king moves or it'll do the same thing
-	for (int i = 0; i < 8; i++){
-		for (int j = 0; j < 8; j++){
-			if (m_pieces[i][j] != nullptr){
-				if (m_pieces[i][j] -> type() != 5){
-					for (unsigned int k = 0; k < m_pieces[i][j]->moves().size(); k++){
-						if (isValidMove(m_pieces[i][j]->moves()[k], m_pieces[i][j], king)){
-							validMoves.push_back(m_pieces[i][j]->moves()[k]);
-							numMoves += 1; 
-						}
-					}
-					m_pieces[i][j]->setMoves(validMoves);
-				}
-			}
-			validMoves.clear();
-		}	
-	}
-	if (m_verbose){
-		std::cout<<"***\tALL VALID MOVES\t***"<<std::endl;
-		for (int i = 0; i < 8; i++){
-			for (int j = 0; j < 8; j++){
-				if (m_pieces[i][j] != nullptr){
-					for (unsigned int k = 0; k < m_pieces[i][j]->moves().size(); k++){
-						std::cout<<"Piece Location: "<<i<<" "<<j<<" Move: "<< m_pieces[i][j]->moves()[k].x<<" "<<m_pieces[i][j]->moves()[k].y<<std::endl;
-					}
-				}
-			}
-		}
-		std::cout<< "Total Number of Valid Moves: "<<numMoves<<std::endl;
-	}
-	//return numMoves;
-}
-
 void Board::resetPiece(Piece* piece){
 	piece->setPos(piece->tileToPos(piece->boardPos()));
-}
-
-bool Board::isValidMove(glm::vec2 move, Piece* piece, Piece* king){
-	return isValidMove(move.x, move.y, piece, king);
 }
 
 bool Board::isOnBoard(int x, int y){
@@ -652,104 +596,6 @@ bool Board::isOnBoard(int x, int y){
 
 bool Board::isOnBoard(glm::vec2 pos){
 	return isOnBoard(pos.x, pos.y);
-}
-
-bool Board::isValidMove(int x, int y, Piece* piece, Piece* king){
-	if (m_verbose) std::cout <<"Piece loc: "<<piece->boardPos().x<<" "<<piece->boardPos().y<<"\ttype: "<<piece->type()<<"\tmove: "<<x<<" "<<y<<" ";
-	//check if the move is to one with a piece
-	if (isOccupied(x,y)){
-		//if current piece is a king
-		if (piece -> type() == 5){
-			//if the other piece is the other colour
-			if (m_pieces[x][y]->colour() != piece->colour()){
-				//if its defended
-				if (isDefended(x,y, piece -> colour())) {
-					if (m_verbose) std::cout <<"\tinvalid: "<< false <<" king can't attack defended piece"<<std::endl;
-					return false;
-				}
-				else {
-					if (m_verbose) std::cout <<"\tvalid: "<< true <<" king taking undefended piece"<<std::endl;
-				}
-			}
-			//if the other piece is the same colour
-			else {
-				if (m_verbose) std::cout <<"\tinvalid: "<< false <<" king can't move to where its own piece is"<<std::endl;
-				return false;
-			}
-		}
-		//if current piece is a pawn
-		else if (piece -> type() == 0){
-			//if the pawn if attacking a piece of the other colour at a different x location
-			if (x != piece -> boardPos().x && m_pieces[x][y]->colour() != piece->colour()){
-				if (m_verbose) std::cout <<"\tvalid: "<< true <<" pawn taking on an angle"<<std::endl;
-			}
-			else {
-				if (m_verbose) std::cout <<"\tinvalid: "<< false <<" pawn can't take in front of itself"<<std::endl;
-				return false;	
-			}
-		}
-		//if its not a pawn or king
-		//if its attacking a piece of the other colour
-		else if (m_pieces[x][y]->colour() != piece->colour()) {
-			if (m_verbose) std::cout <<"\tvalid: "<< true <<" not king or pawn taking a piece"<<std::endl;
-		}
-		else {
-			if (m_verbose) std::cout <<"\tinvalid: "<< false <<" not king or pawn can't take piece of own colour"<<std::endl;
-			return false;
-		}
-	}
-	//if move is to a tile without a piece
-	else {
-		//if its a king
-		if (piece -> type() == 5){
-			//if to a defended square
-			if (isDefended(x,y, piece->colour())) {
-				if (m_verbose) std::cout <<"\tinvalid: "<< false <<" king can't move to defended tile"<<std::endl;
-				return false;
-			}
-			else {
-				if (m_verbose) std::cout <<"\tvalid: "<< true <<" king moving to empty tile"<<std::endl;
-			}
-		}
-		//if its a pawn
-		else if (piece -> type() == 0){
-			//if the x location is the same as the pawns
-			if (x != piece -> boardPos().x) {
-				if (m_verbose) std::cout <<"\tinvalid: "<< false <<" pawn can't move sideways to empty tile"<<std::endl;
-				return false;
-			}
-			else {
-				if (m_verbose) std::cout <<"\tvalid: "<< true <<" pawn moving to empty tile in front of it"<<std::endl;
-			}
-		}
-		//if its not a pawn or king
-		else {
-			if (m_verbose) std::cout <<"\tvalid: "<< true <<" not king or pawn moving to empty tile"<<std::endl;
-		}
-	}
-	//temporarily move piece and check if king is in check
-	int kingAttackers;
-	if (king != nullptr){
-		if (piece->colour() == king->colour()){
-			tempMovePiece(piece, x,y);
-			kingAttackers = isKingInCheck(king);
-			tempMovePiece(piece, piece->boardPos());
-			if (kingAttackers > 0) {
-				if (m_verbose) std::cout << "\t\t\t\t\tinvalid: "<< false<< " Number of King Attackers if move made: "<<kingAttackers<<std::endl;
-				return false;
-			}
-			else{
-				if (m_verbose) std::cout << "\t\t\t\t\tvalid: "<< true<< " Number of King Attackers if move made: "<<kingAttackers<<std::endl;
-			}
-		}
-		else {
-			if (m_verbose) std::cout <<"\t\t\t\t\tvalid: "<< true<<" Don't need to check checks for other colour piece"<<std::endl;
-		}
-	}
-	else {
-		if (m_verbose) std::cout<<"\t\t\t\t\tvalid: "<<true<<" Don't need to check checks for king moves"<<std::endl;
-	}
-	return true;
 }
 
 int Board::isKingInCheck(Piece* king){

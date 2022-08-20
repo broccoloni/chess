@@ -17,9 +17,8 @@ class Board
 		Piece* isOccupied(glm::vec2 tile);
 		Piece* isOccupied(int x, int y);
 		void updateBoard();
-		void calculateMoves(Piece* piece, int turnColour = -1);
+		void calculateMoves(Piece* piece);
 		void calculateAllMoves();
-		void validateAllMoves(int turnColour);
 		bool isDefended(int x, int y, int colour);
 		glm::vec2 tileToPos(glm::vec2 tile);
 		void setPiece(int x, int y, Piece* piece) { m_pieces[x][y] = piece; }
@@ -31,8 +30,6 @@ class Board
 		void tempMovePiece(Piece* piece, int x, int y);
 		void tempMovePiece(Piece* piece, glm::vec2 pos);
 		void resetPiece(Piece* piece);
-		bool isValidMove(glm::vec2 move, Piece* piece, Piece* king);
-		bool isValidMove(int x, int y, Piece* piece, Piece* king);
 		bool isOnBoard(glm::vec2 pos);
 		bool isOnBoard(int x, int y);
 		int isKingInCheck(Piece* king);

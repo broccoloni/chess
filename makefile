@@ -1,7 +1,7 @@
 CC = g++
 FLAGS = -Wall
-LIBS = -L$(HOME)/Desktop/GameEngine/
-INCS = -I$(HOME)/Desktop/GameEngine/
+LIBS = -LGameEngine/
+INCS = -IGameEngine/
 
 all: Chess
 

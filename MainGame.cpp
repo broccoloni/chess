@@ -70,7 +70,6 @@ void MainGame::run(bool verbose){
 	}
 	m_curPiece = m_board.piece(4,0); //initialize current piece to white king
 	m_board.calculateAllMoves();	
-	m_board.validateAllMoves(m_turnColour);
 	gameLoop();
 }
 
@@ -173,11 +172,11 @@ void MainGame::processInput(){
 						m_moveNum += 1;
 						m_turnColour += 1;
 						m_turnColour = m_turnColour%2;
-       					}
-					//remove display of moves if clicking somewhere else
-					else {
-						m_curPiece -> clickOff();
-					}
+       				}
+                    else {
+                        //Removes dot display of moves if clicking in another location (eg random tile)
+                        m_curPiece->clickOff();
+                    }
 				}
 				m_curPiece -> drop();
 				break;
@@ -224,16 +223,28 @@ void MainGame::processInput(){
 		//new click on a piece
 		else if (m_board.isOccupied(mouseTile) != nullptr){
 			if (m_board.piece(mouseTile) -> colour() == m_turnColour){
-				m_curPiece -> clickOff();
 				m_mouseChange = glm::vec2(0,0);
 				m_mouseClickPos = mouseCoords;
 				m_curPiece = m_board.piece(mouseTile);
 				m_curPiece -> hold();
-				m_curPiece->clickOn();
-			}
+				if (m_curPiece->isClickedOn()){
+                    m_curPiece->clickOff();
+                }
+                else {
+                    m_curPiece->clickOn();
+                    std::cout<<"CURRENT PIECE"<<std::endl;
+                    std::cout<<"location: "<<(int)m_curPiece->boardPos().x<<", "<<(int)m_curPiece->boardPos().y<<std::endl;
+                    std::cout<<"type: "<<m_curPiece->type()<<std::endl;
+                    std::cout<<"colour: "<<m_curPiece->colour()<<std::endl;
+                    std::cout<<"moves:"<<std::endl;
+                    for (unsigned int i = 0; i < m_curPiece->moves().size(); i++){
+                        std::cout<<"Move "<<i<<": "<<(int)m_curPiece->moves()[i].x<<", "<<(int)m_curPiece->moves()[i].y<<std::endl;
+                    }
+                    std::cout<<std::endl;
+                }
+            }
 		}
 	}
-
 }
 
 void MainGame::drawGame(){
