@@ -18,7 +18,7 @@ class Board
 		Piece* isOccupied(int x, int y);
 		void updateBoard();
         void resetAttackers();
-        void calculateMoves(Piece* piece, int *** attackers, bool setPieceMoves = true);
+        void calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMoves = true);
 		void calculateAllMoves();
         bool doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move);
         void pruneMovesForCheck(Piece* king);
