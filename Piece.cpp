@@ -44,7 +44,6 @@ glm::vec2 Piece::tileToPos(glm::vec2 tile){
 }
 
 void Piece::move(int x, int y){
-    std::cout<<"Moving piece at "<<(int)m_boardPos.x<<", "<<(int)m_boardPos.y<<" to "<<x<<", "<<y<<std::endl;
     m_justMoved = true;
     m_timesMoved += 1;
     setBoardPos(x,y);
@@ -53,14 +52,11 @@ void Piece::move(int x, int y){
 }
 
 bool Piece::isAMove(int x, int y){
-	std::cout <<"Piece of type "<<m_pieceType<<" at "<<m_boardPos.x<<" "<<m_boardPos.y<<" checking move: "<<x<<" "<<y;
 	for (unsigned int i = 0; i < m_moves.size(); i++){
 		if (m_moves[i].x == x && m_moves[i].y == y){
-			std::cout <<" valid"<<std::endl; 
 			return true;
 		}
 	}
-	std::cout <<" invalid"<<std::endl; 
 	return false;
 }
 

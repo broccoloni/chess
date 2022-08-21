@@ -75,7 +75,6 @@ void Board::draw(SpriteBatch& spriteBatch, int turnColour){
 
 glm::vec2 Board::getTile(glm::vec2 mouseCoords, int turnColour){
 	if ((abs(mouseCoords.x) > 4*m_squareSize) || (abs(mouseCoords.y) > 4*m_squareSize)){
-		//std::cout <<"\noffboard\n"<< std::endl;
 		return glm::vec2(-1,-1);
 	}
 	glm::vec2 tile;
@@ -92,7 +91,6 @@ glm::vec2 Board::getTile(glm::vec2 mouseCoords, int turnColour){
 	else {
 		tile.y = 4 + (int)(mouseCoords.y/m_squareSize);
 	}
-	//std::cout<< tile.x <<" "<< tile.y<<std::endl;
 	if (turnColour == 0) return tile;
 	else return glm::vec2(7,7) - tile;
 }
@@ -112,14 +110,16 @@ Piece* Board::isOccupied(int x, int y){
 }
 
 void Board::resetAttackers(){
-    for (unsigned int player = 0; player <= 1; player++){
+    std::cout<<"Resetting attackers"<<std::endl;
+    for (unsigned int p = 0; p < 2; p++){
         for (unsigned int i = 0; i < 8; i++){
             for (unsigned int j = 0; j < 8; j++){
-                m_attackers[player][i][j] = 0;
+                m_attackers[p][i][j] = 0;
             }
         }
     }
 }
+
 
 void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMoves){
     std::vector<glm::vec2> moves;
@@ -159,7 +159,6 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
                 }
                 attackers[colour][(int)move.x][(int)move.y] += 1;
             }        
-            else if (isOnBoard(move)) attackers[colour][(int)move.x][(int)move.y] += 1;
             //en passant on the left
             int fifthrank = 4 - piece->colour();
             Piece* sidepawn = isOccupied(pos+glm::vec2(-1,0));
@@ -210,6 +209,7 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
                             }
                         }
 					}
+                    //occupied by player piece (not king)
                     else if (isOnBoard(move) && isOccupied(move)->colour() == colour){
                         attackers[colour][(int)move.x][(int)move.y] += 1;
                         blocked = true;
@@ -396,8 +396,8 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
                                 }
                             }
                         }
-					}
-                    else if (isOnBoard(move) && isOccupied(move)->colour() == colour){ 
+                    }
+                    else if (isOnBoard(move) && isOccupied(move)->colour() == colour){
                         attackers[colour][(int)move.x][(int)move.y] += 1;
                         blocked = true;
                     }
@@ -730,8 +730,7 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
 			}
             break;
 		}
-		case 5: //kings NEED TO CHECK IF WHEN KING TAKES PIECE ITS DEFENDED AND IF ATTACKING PIECES BLOCK CASTLING
-        //ALSO CHECK IF KING IS IN CHECK AND CALCULATE MOVES APPROPRIATELY
+		case 5: //King
         {
             //Regular Moves
 			for (int i = -1; i < 2; i++) {
@@ -740,7 +739,6 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
 						move = pos + glm::vec2(i,j);
 						if (isOnBoard(move)){
                             //square empty and not attacked
-                            //std::cout<<"KING MOVE: "<<move.x<<", "<<move.y<<" attackers: "<<isAttacked(otherColour,move)<<std::endl;
                             if (isOccupied(move) == nullptr && isAttacked(otherColour,move) == 0){
                                 attackers[colour][(int)move.x][(int)move.y] += 1;
                                 moves.push_back(move);
@@ -805,49 +803,18 @@ void Board::calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMo
             break;
 		}
 	}
-    //std::cout<<"Calculating moves for piece type "<<piece->type()<<" at "<<(int) pos[0]<<", "<<(int) pos[1]<<std::endl;
-    //std::cout<<"All moves:"<<std::endl;
-    //for (unsigned int i = 0; i < moves.size();i++){
-    //    std::cout<<"Move "<<i<<": "<< moves[i][0]<<", "<<moves[i][1]<<std::endl; 
-    //}
-    //std::cout<<std::endl;
     if (setPieceMoves) piece -> setMoves(moves);
 }
 
-void Board::pruneMovesForCheck(Piece* king){
+void Board::pruneMovesForChecksAndPins(Piece* king){
     Piece* piece;
     glm::vec2 move;
     int numkingattackers = isKingInCheck(king);
-    //No attackers, no pruning
-    if (numkingattackers == 0) return;
 
-    //One attacker, have to find king moves and blocks
-    else if (numkingattackers == 1){
-        for (unsigned int i = 0; i < 8; i++){
-            for (unsigned int j = 0; j < 8; j++){
-                piece = isOccupied(i,j);
-                if (piece != nullptr){
-                    if (piece->colour() == king->colour() && piece->type() != 5){
-                        std::vector<glm::vec2> moves;
-                        for (unsigned int i = 0; i < piece->moves().size(); i++){
-                            move = piece->moves()[i];
-                            if (doesBlockCheck(king,piece,move)){
-                                std::cout<<" keeping move"<<std::endl;
-                                moves.push_back(move);
-                            }
-                            else{
-                                std::cout<<" pruning move"<<std::endl;
-                            }
-                        }
-                        piece -> setMoves(moves);
-                    }
-                }
-            }
-        }
-    }
-
+    std::cout<<"Pruning moves for check - number of attackers: "<<numkingattackers<<std::endl;
+    
     //Two+ attackers, king has to move
-    else{
+    if (numkingattackers == 2){
         std::vector<glm::vec2> moves;
         for (unsigned int i = 0; i < 8; i++){
             for (unsigned int j = 0; j < 8; j++){
@@ -860,12 +827,46 @@ void Board::pruneMovesForCheck(Piece* king){
             }
         }
     }
+
+    //One attacker or less attackers, same algo for finding moves under pins and blocking checks so just do both here
+    else{
+        for (unsigned int i = 0; i < 8; i++){
+            for (unsigned int j = 0; j < 8; j++){
+                piece = isOccupied(i,j);
+                if (piece != nullptr){
+                    if (piece->colour() == king->colour() && piece->type() != 5){
+                        std::vector<glm::vec2> moves;
+                        //std::cout<<"Piece type "<<piece->type()<<" at "<<i<<", "<<j<<" num moves: "<<piece->moves().size()<<std::endl;
+                        for (unsigned int i = 0; i < piece->moves().size(); i++){
+                            move = piece->moves()[i];
+                        //    std::cout<<i<<" move: "<<move.x<<", "<<move.y;
+                            if (doesBlockCheck(king,piece,move)){
+                        //        std::cout<<" kept"<<std::endl;
+                                moves.push_back(move);
+                            }
+                            else{
+                        //        std::cout<<" pruned"<<std::endl;
+                            }
+                        }
+                        piece -> setMoves(moves);
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout<<"(end of pruning for checks)"<<std::endl;
+    printState();
 }
 
 bool Board::doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move){
-    std::cout<<"Check Blocking - Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" move "<<move.x<<", "<<move.y;
-    glm::vec2 origpos = piece->boardPos();
+    //take piece at move location so it doesn't get overwritten
+    Piece* temptilepiece = isOccupied(move);
+    
+    //Temporarily move piece to move location
     tempMovePiece(piece,move);
+
+    //calculate all moves of opponent to see if there's still checks
     Piece* opppiece;
     int oppcolour = 1 - piece->colour();
     int attackers[2][8][8] = {}; //initialized to 0
@@ -878,19 +879,22 @@ bool Board::doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move){
             }    
         }
     }
-    tempMovePiece(piece,origpos);
+    //Undo temporary move of piece
+    tempUnmovePiece(piece,move);
+    if (temptilepiece != nullptr) tempUnmovePiece(temptilepiece,move);
+
+    //count attackers
     int numattackers = attackers[oppcolour][(int)king->boardPos().x][(int)king->boardPos().y];
-    std::cout<<" number of king attackers: "<<numattackers;
     if (numattackers == 0) return true;
     return false;
 }
 
-int Board::isAttacked(int colour, int x, int y){
-    return m_attackers[colour][x][y];
+int Board::isAttacked(int attackingColour, int x, int y){
+    return m_attackers[attackingColour][x][y];
 }
 
-int Board::isAttacked(int colour, glm::vec2 pos){
-    return isAttacked(colour, (int)pos.x, (int)pos.y);
+int Board::isAttacked(int attackingColour, glm::vec2 pos){
+    return isAttacked(attackingColour, (int)pos.x, (int)pos.y);
 }
 
 void Board::movePiece(Piece* piece, glm::vec2 boardPos, int turnColour){
@@ -898,7 +902,8 @@ void Board::movePiece(Piece* piece, glm::vec2 boardPos, int turnColour){
 }
 
 void Board::movePiece(Piece* piece, int x, int y, int turnColour){
-	if (piece -> type() == 5){	
+    std::cout<<"Moving Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" to "<< x<<", "<<y<<std::endl;
+    if (piece -> type() == 5){	
 		//castling left
 		if (x == (int)piece->boardPos().x - 2){
 			movePiece(m_pieces[0][y], x+1, y, turnColour);
@@ -908,27 +913,91 @@ void Board::movePiece(Piece* piece, int x, int y, int turnColour){
 			movePiece(m_pieces[7][y], x-1, y, turnColour);
 		}
 	}
-	setPiece(piece->boardPos(), nullptr);
+	//get piece at location where piece is going to
+    Piece* tilepiece = isOccupied(x,y);
+    if (tilepiece != nullptr) m_takenPieces.push_back(tilepiece);
+
+    //set original piece location to null
+    setPiece(piece->boardPos(), nullptr);
+
+    //set new piece in move location
 	setPiece(x,y, piece);
+
+    //update piece attributes
     piece->move(x,y);
 
-    //For next players turn
-    calculateAllMoves();
+    //update justmoved for en passant
     resetJustMoved(turnColour);
+
+    std::cout<<"(end of move piece)"<<std::endl;
+    printState();
+}
+
+void Board::calculateNextTurnMoves(int nextTurnColour){
+    std::cout<<"Calculating Next Turn Moves (next turn is player "<<nextTurnColour<<")"<<std::endl;
+    //For next players turn
+    calculateAllMoves(); //necessary for all to include the moved piece which may have new attacks on king
     
     //find opponents king
+    Piece* piece;
     Piece* oppking;
+    std::cout<<"Looking for king of colour "<<nextTurnColour<<std::endl;
     for (unsigned int i = 0; i < 8; i++){
         for (unsigned int j = 0; j < 8; j++){
-            if (isOccupied(i,j) != nullptr){
-                if (isOccupied(i,j)->type() == 5 && isOccupied(i,j)->colour() != turnColour){
-                    oppking = isOccupied(i,j);
+            piece = isOccupied(i,j);
+            if (piece != nullptr){
+                if (piece->type() == 5 && piece->colour() == nextTurnColour){
+                    oppking = piece;
+                    break;
                 }
             }
         }
     }
+    
+    //Prune moves for pinned pieces
+
     //Prune moves to get out of check if in check
-    pruneMovesForCheck(oppking);
+    pruneMovesForChecksAndPins(oppking);
+    //Check total number of moves - if 0, game over
+    std::cout<<"(end of calculating next turn moves)"<<std::endl;
+    printState();
+}
+
+void Board::printState(){
+    std::cout<<"Board state:"<<std::endl;
+    std::cout<<"player 0\t\t\tplayer 1"<<std::endl;
+    Piece* piece;
+    for (unsigned int i = 0; i < 8; i++){
+        for (int player = 0; player <= 1; player++){
+            for (unsigned int j = 0; j < 8; j++){
+                piece = isOccupied(i,j);
+                if (piece != nullptr) {
+                    if (piece->colour() == player) std::cout << piece->type()<<" ";
+                    else std::cout << "- ";
+                }
+                else std::cout << "- ";
+            }
+            std::cout<<"\t\t";
+        }
+        std::cout<<std::endl;
+    }
+
+
+    std::cout<<"Attackers:"<<std::endl;
+    std::cout<<"player 0\t\t\tplayer 1"<<std::endl;
+    int numattackers;
+    for (unsigned int i = 0; i < 8; i++){
+        for (unsigned int player = 0; player <= 1; player++){
+            for (unsigned int j = 0; j < 8; j++){
+                numattackers = m_attackers[player][i][j];
+                if (numattackers == 0) std::cout<<"- ";
+                else std::cout << numattackers<< " ";
+            }
+            std::cout<<"\t\t";
+        }
+        std::cout<<std::endl;
+    }
+
 }
 
 void Board::tempMovePiece(Piece* piece, int x, int y){
@@ -940,14 +1009,27 @@ void Board::tempMovePiece(Piece* piece, glm::vec2 pos){
 	tempMovePiece(piece, (int)pos.x, (int)pos.y);
 }
 
+void Board::tempUnmovePiece(Piece* piece, int movex, int movey){
+    setPiece(movex, movey, nullptr);
+    setPiece(piece->boardPos(), piece);
+}
+
+void Board::tempUnmovePiece(Piece* piece, glm::vec2 move){
+    setPiece(move, nullptr);
+    setPiece(piece->boardPos(), piece);
+}
+
 void Board::calculateAllMoves(){
+    std::cout<<"Calculating All Moves"<<std::endl;
     resetAttackers();
+    Piece* piece;
     //Calculate all moves other than kings
 	for (int i = 0; i < 8; i++){
 		for (int j = 0; j < 8; j++){
-			if (m_pieces[i][j] != nullptr){
-				if (m_pieces[i][j]->type() < 5){
-                    calculateMoves(m_pieces[i][j],m_attackers);
+			piece = isOccupied(i,j);
+            if (piece != nullptr){
+				if (piece->type() < 5){
+                    calculateMoves(piece,m_attackers);
                 }
 			}
 		}
@@ -955,25 +1037,16 @@ void Board::calculateAllMoves(){
     //Calculate king moves
 	for (int i = 0; i < 8; i++){
 		for (int j = 0; j < 8; j++){
-			if (m_pieces[i][j] != nullptr){
-				if (m_pieces[i][j]->type() == 5){
-                    calculateMoves(m_pieces[i][j],m_attackers);
+            piece = isOccupied(i,j);
+			if (piece != nullptr){
+				if (piece->type() == 5){
+                    calculateMoves(piece,m_attackers);
                 }
 			}
 		}
-	}
-    std::cout<<"Attackers:"<<std::endl;
-    for (unsigned int player = 0; player <= 1; player++){
-        std::cout<<"player "<<player<<std::endl;
-        for (unsigned int i = 0; i < 8; i++){
-            for (unsigned int j = 0; j < 8; j++){
-                std::cout << m_attackers[player][i][j]<< " ";
-            }
-            std::cout<<std::endl;
-        }
-        std::cout<<std::endl;
     }
-
+    std::cout<<"(end of calculate all moves)"<<std::endl;
+    printState();
 }
 
 void Board::resetPiece(Piece* piece){
@@ -1002,6 +1075,7 @@ bool Board::isOnBoard(glm::vec2 pos){
 }
 
 int Board::isKingInCheck(Piece* king){
-	 return m_attackers[1-king->colour()][(int)king->boardPos().x][(int)king->boardPos().y];
+    //Check king location on other teams attacker board
+    return m_attackers[1-king->colour()][(int)king->boardPos().x][(int)king->boardPos().y];
 }
 

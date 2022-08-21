@@ -20,10 +20,11 @@ class Board
         void resetAttackers();
         void calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMoves = true);
 		void calculateAllMoves();
+        void calculateNextTurnMoves(int nextTurnColour);
         bool doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move);
-        void pruneMovesForCheck(Piece* king);
-        int isAttacked(int colour, int x, int y);
-        int isAttacked(int colour, glm::vec2 pos);
+        void pruneMovesForChecksAndPins(Piece* king);
+        int isAttacked(int attackingColour, int x, int y);
+        int isAttacked(int attackingColour, glm::vec2 pos);
 		glm::vec2 tileToPos(glm::vec2 tile);
 		void setPiece(int x, int y, Piece* piece) { m_pieces[x][y] = piece; }
 		void setPiece(glm::vec2 pos, Piece* piece) { m_pieces[(int)pos.x][(int)pos.y] = piece; }
@@ -33,8 +34,11 @@ class Board
 		void movePiece(Piece* piece, int x, int y, int turnColour);
 		void tempMovePiece(Piece* piece, int x, int y);
 		void tempMovePiece(Piece* piece, glm::vec2 pos);
-		void resetPiece(Piece* piece);
+        void tempUnmovePiece(Piece* piece, int movex, int movey);
+        void tempUnmovePiece(Piece* piece, glm::vec2 move);
+        void resetPiece(Piece* piece);
         void resetJustMoved(int turnColour);
+        void printState();
         bool isOnBoard(glm::vec2 pos);
 		bool isOnBoard(int x, int y);
 		int isKingInCheck(Piece* king);
@@ -46,7 +50,7 @@ class Board
 		GLTexture m_darkSquare;
 		GLTexture m_moveTexture;
 		Piece* m_pieces[8][8];
-        int m_attackers[2][8][8]; //each player x 8 x 8 board
+        int m_attackers[2][8][8]; //each player x 8 x 8 board attackers[0][:][:] are locations player 0 is attacking
         std::vector<Piece *> m_takenPieces;
 		bool m_verbose;		
 };

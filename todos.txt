@@ -1,5 +1,2 @@
-finish prune for king check
-make function to prune moves for pinned pieces
-Need to add checks, avoiding checks etc.
-Need to make function that removes piece/keep track of which pieces are taken. It would be nice to display the taken pieces as well
+Fix the dots so other teams dots don't show when it's your turn (probably has to do with curpiece in maingame)
 Change the auto flip board to a button

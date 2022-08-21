@@ -69,8 +69,12 @@ void MainGame::run(bool verbose){
 		}
 	}
 	m_curPiece = m_board.piece(4,0); //initialize current piece to white king
-	m_board.calculateAllMoves();	
-	gameLoop();
+	m_board.calculateAllMoves();    
+    std::cout<<"******************************";
+    std::cout<<" Starting Game ";
+    std::cout<<"******************************";
+    std::cout<<std::endl;
+    gameLoop();
 }
 
 void MainGame::initSystems(){
@@ -155,10 +159,16 @@ void MainGame::processInput(){
 					//move piece by dragging it
 					if (m_curPiece ->isAMove(newPos)){
 						m_board.movePiece(m_curPiece, newPos, m_turnColour);
-						m_moveNum += 1;
-						m_turnColour += 1;
-						m_turnColour = m_turnColour%2;
-					}
+                        m_moveNum += 1;
+						m_turnColour = 1 - m_turnColour;
+                        m_board.calculateNextTurnMoves(m_turnColour);
+        
+                        std::cout<<"##############################";
+                        if (m_turnColour == 0) std::cout<<" White's Turn ";
+                        else std::cout<< " Black's Turn ";
+                        std::cout<<"##############################"<<std::endl;
+        
+                    }
 					//reset piece to original position if not a valid move
 					else {
 						m_board.resetPiece(m_curPiece);
@@ -169,9 +179,14 @@ void MainGame::processInput(){
 					//move piece to where move is shown 
 					if (m_curPiece->isAMove(mouseTile)){
 						m_board.movePiece(m_curPiece, mouseTile, m_turnColour);
-						m_moveNum += 1;
-						m_turnColour += 1;
-						m_turnColour = m_turnColour%2;
+                        m_moveNum += 1;
+						m_turnColour = 1 - m_turnColour;
+                        m_board.calculateNextTurnMoves(m_turnColour);
+                        
+                        std::cout<<"##############################";
+                        if (m_turnColour == 0) std::cout<<" White's Turn ";
+                        else std::cout<< " Black's Turn ";
+                        std::cout<<"##############################"<<std::endl;
        				}
                     else {
                         //Removes dot display of moves if clicking in another location (eg random tile)
@@ -232,15 +247,15 @@ void MainGame::processInput(){
                 }
                 else {
                     m_curPiece->clickOn();
-                    std::cout<<"CURRENT PIECE"<<std::endl;
-                    std::cout<<"location: "<<(int)m_curPiece->boardPos().x<<", "<<(int)m_curPiece->boardPos().y<<std::endl;
-                    std::cout<<"type: "<<m_curPiece->type()<<std::endl;
-                    std::cout<<"colour: "<<m_curPiece->colour()<<std::endl;
-                    std::cout<<"moves:"<<std::endl;
-                    for (unsigned int i = 0; i < m_curPiece->moves().size(); i++){
-                        std::cout<<"Move "<<i<<": "<<(int)m_curPiece->moves()[i].x<<", "<<(int)m_curPiece->moves()[i].y<<std::endl;
-                    }
-                    std::cout<<std::endl;
+                    //std::cout<<"CURRENT PIECE"<<std::endl;
+                    //std::cout<<"location: "<<(int)m_curPiece->boardPos().x<<", "<<(int)m_curPiece->boardPos().y<<std::endl;
+                    //std::cout<<"type: "<<m_curPiece->type()<<std::endl;
+                    //std::cout<<"colour: "<<m_curPiece->colour()<<std::endl;
+                    //std::cout<<"moves:"<<std::endl;
+                    //for (unsigned int i = 0; i < m_curPiece->moves().size(); i++){
+                    //    std::cout<<"Move "<<i<<": "<<(int)m_curPiece->moves()[i].x<<", "<<(int)m_curPiece->moves()[i].y<<std::endl;
+                    //}
+                    //std::cout<<std::endl;
                 }
             }
 		}
