@@ -933,7 +933,7 @@ void Board::movePiece(Piece* piece, int x, int y, int turnColour){
     printState();
 }
 
-void Board::calculateNextTurnMoves(int nextTurnColour){
+int Board::calculateNextTurnMoves(int nextTurnColour){
     std::cout<<"Calculating Next Turn Moves (next turn is player "<<nextTurnColour<<")"<<std::endl;
     //For next players turn
     calculateAllMoves(); //necessary for all to include the moved piece which may have new attacks on king
@@ -954,13 +954,31 @@ void Board::calculateNextTurnMoves(int nextTurnColour){
         }
     }
     
-    //Prune moves for pinned pieces
-
-    //Prune moves to get out of check if in check
+    //Prune moves to get out of checks and not move pinned pieces
     pruneMovesForChecksAndPins(oppking);
-    //Check total number of moves - if 0, game over
+
     std::cout<<"(end of calculating next turn moves)"<<std::endl;
     printState();
+
+    //return -1 if draw, 0 if win/loss, number of moves otherwise
+    int numMoves = sumMoves(nextTurnColour);
+    if (numMoves == 0 && isKingInCheck(oppking)) return 0;
+    else if (numMoves == 0) return -1;
+    else return numMoves;
+}
+
+int Board::sumMoves(int turnColour){
+    int movetot = 0;
+    Piece* piece;
+    for (unsigned int i = 0; i < 8; i++){
+        for (unsigned int j = 0; j < 8; j++){
+            piece = isOccupied(i,j);
+            if (piece != nullptr){
+                if (piece->colour() == turnColour) movetot += piece->moves().size();
+            }
+        }
+    }
+    return movetot;
 }
 
 void Board::printState(){

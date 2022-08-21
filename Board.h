@@ -20,9 +20,10 @@ class Board
         void resetAttackers();
         void calculateMoves(Piece* piece, int attackers[2][8][8], bool setPieceMoves = true);
 		void calculateAllMoves();
-        void calculateNextTurnMoves(int nextTurnColour);
+        int calculateNextTurnMoves(int nextTurnColour);
         bool doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move);
         void pruneMovesForChecksAndPins(Piece* king);
+        int sumMoves(int turnColour);
         int isAttacked(int attackingColour, int x, int y);
         int isAttacked(int attackingColour, glm::vec2 pos);
 		glm::vec2 tileToPos(glm::vec2 tile);

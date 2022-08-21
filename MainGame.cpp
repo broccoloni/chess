@@ -128,6 +128,7 @@ void MainGame::processInput(){
 	
 	const float CAMERA_SPEED = 2.0f;
 	const float SCALE_SPEED = 0.1f;
+    int numMoves;
 
 	while (SDL_PollEvent(&evnt) == true){
 		switch (evnt.type){
@@ -161,13 +162,20 @@ void MainGame::processInput(){
 						m_board.movePiece(m_curPiece, newPos, m_turnColour);
                         m_moveNum += 1;
 						m_turnColour = 1 - m_turnColour;
-                        m_board.calculateNextTurnMoves(m_turnColour);
+                        numMoves = m_board.calculateNextTurnMoves(m_turnColour);
         
-                        std::cout<<"##############################";
-                        if (m_turnColour == 0) std::cout<<" White's Turn ";
-                        else std::cout<< " Black's Turn ";
-                        std::cout<<"##############################"<<std::endl;
-        
+                        if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+                        else if (numMoves == 0){
+                            if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
+                            else std::cout<<"WHITE WINS"<<std::endl;
+                        }
+                        else{
+                            std::cout<<"##############################";
+                            if (m_turnColour == 0) std::cout<<" White's Turn ";
+                            else std::cout<< " Black's Turn ";
+                            std::cout<<"##############################"<<std::endl;
+                            std::cout<<"Legal Moves: "<<numMoves<<std::endl;
+                        }
                     }
 					//reset piece to original position if not a valid move
 					else {
@@ -181,12 +189,20 @@ void MainGame::processInput(){
 						m_board.movePiece(m_curPiece, mouseTile, m_turnColour);
                         m_moveNum += 1;
 						m_turnColour = 1 - m_turnColour;
-                        m_board.calculateNextTurnMoves(m_turnColour);
+                        numMoves = m_board.calculateNextTurnMoves(m_turnColour);
                         
-                        std::cout<<"##############################";
-                        if (m_turnColour == 0) std::cout<<" White's Turn ";
-                        else std::cout<< " Black's Turn ";
-                        std::cout<<"##############################"<<std::endl;
+                        if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+                        else if (numMoves == 0){
+                            if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
+                            else std::cout<<"WHITE WINS"<<std::endl;
+                        }
+                        else{
+                            std::cout<<"##############################";
+                            if (m_turnColour == 0) std::cout<<" White's Turn ";
+                            else std::cout<< " Black's Turn ";
+                            std::cout<<"##############################"<<std::endl;
+                            std::cout<<"Legal Moves: "<<numMoves<<std::endl;
+                        }
        				}
                     else {
                         //Removes dot display of moves if clicking in another location (eg random tile)
