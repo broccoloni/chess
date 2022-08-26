@@ -73,7 +73,7 @@ void Board::draw(SpriteBatch& spriteBatch, int turnColour){
 	}
 }
 
-glm::vec2 Board::getTile(glm::vec2 mouseCoords, int turnColour){
+glm::vec2 Board::getTile(glm::vec2 mouseCoords, int boardOrientation){
 	if ((abs(mouseCoords.x) > 4*m_squareSize) || (abs(mouseCoords.y) > 4*m_squareSize)){
 		return glm::vec2(-1,-1);
 	}
@@ -91,7 +91,7 @@ glm::vec2 Board::getTile(glm::vec2 mouseCoords, int turnColour){
 	else {
 		tile.y = 4 + (int)(mouseCoords.y/m_squareSize);
 	}
-	if (turnColour == 0) return tile;
+	if (boardOrientation == 0) return tile;
 	else return glm::vec2(7,7) - tile;
 }
 
@@ -897,25 +897,35 @@ int Board::isAttacked(int attackingColour, glm::vec2 pos){
     return isAttacked(attackingColour, (int)pos.x, (int)pos.y);
 }
 
-void Board::movePiece(Piece* piece, glm::vec2 boardPos, int turnColour){
-	movePiece(piece, (int)boardPos.x, (int)boardPos.y, turnColour);
+void Board::movePiece(Piece* piece, glm::vec2 boardPos){
+	movePiece(piece, (int)boardPos.x, (int)boardPos.y);
 }
 
-void Board::movePiece(Piece* piece, int x, int y, int turnColour){
+void Board::movePiece(Piece* piece, int x, int y){
     std::cout<<"Moving Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" to "<< x<<", "<<y<<std::endl;
     if (piece -> type() == 5){	
 		//castling left
 		if (x == (int)piece->boardPos().x - 2){
-			movePiece(m_pieces[0][y], x+1, y, turnColour);
+			movePiece(m_pieces[0][y], x+1, y);
 		}
 		//castling right
 		else if (x == (int)piece->boardPos().x + 2){
-			movePiece(m_pieces[7][y], x-1, y, turnColour);
+			movePiece(m_pieces[7][y], x-1, y);
 		}
 	}
 	//get piece at location where piece is going to
     Piece* tilepiece = isOccupied(x,y);
     if (tilepiece != nullptr) m_takenPieces.push_back(tilepiece);
+    
+    //En passant
+    else{ //tilepiece is empty
+        tilepiece = isOccupied(x,(int)piece->boardPos().y);
+        if (tilepiece->type() == 0 && piece->type() == 0 &&
+                tilepiece->timesMoved() == 1 && tilepiece->wasJustMoved()){
+            m_takenPieces.push_back(tilepiece);
+            setPiece(tilepiece->boardPos(),nullptr);
+        }
+    }
 
     //set original piece location to null
     setPiece(piece->boardPos(), nullptr);
@@ -927,7 +937,7 @@ void Board::movePiece(Piece* piece, int x, int y, int turnColour){
     piece->move(x,y);
 
     //update justmoved for en passant
-    resetJustMoved(turnColour);
+    resetJustMoved(piece->colour());
 
     std::cout<<"(end of move piece)"<<std::endl;
     printState();

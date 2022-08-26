@@ -13,7 +13,7 @@ class Board
 
 		void init(int boardStart, int squareSize, bool verbose);
 		void draw(SpriteBatch& spriteBatch, int turnColour);
-		glm::vec2 getTile(glm::vec2 mouseCoords, int turnColour);
+		glm::vec2 getTile(glm::vec2 mouseCoords, int boardOrientation);
 		Piece* isOccupied(glm::vec2 tile);
 		Piece* isOccupied(int x, int y);
 		void updateBoard();
@@ -29,10 +29,8 @@ class Board
 		glm::vec2 tileToPos(glm::vec2 tile);
 		void setPiece(int x, int y, Piece* piece) { m_pieces[x][y] = piece; }
 		void setPiece(glm::vec2 pos, Piece* piece) { m_pieces[(int)pos.x][(int)pos.y] = piece; }
-		Piece* piece(int x, int y) { return m_pieces[x][y]; }
-		Piece* piece(glm::vec2 pos) { return m_pieces[(int)pos.x][(int)pos.y]; }
-		void movePiece(Piece* piece, glm::vec2 boardPos, int turnColour);
-		void movePiece(Piece* piece, int x, int y, int turnColour);
+		void movePiece(Piece* piece, glm::vec2 boardPos);
+		void movePiece(Piece* piece, int x, int y);
 		void tempMovePiece(Piece* piece, int x, int y);
 		void tempMovePiece(Piece* piece, glm::vec2 pos);
         void tempUnmovePiece(Piece* piece, int movex, int movey);

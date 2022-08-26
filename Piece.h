@@ -36,6 +36,7 @@ class Piece
 		void drop() { m_beingHeld = false; }
 		void clickOn() { m_clickedOn = true; }
 		void clickOff() { m_clickedOn = false; }
+        void click() { m_clickedOn = !m_clickedOn; }
         void wasNotJustMoved() { m_justMoved = false; }
         void setMoves(std::vector<glm::vec2> moves) { m_moves = moves; }
 		void move(int x, int y);

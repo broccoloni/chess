@@ -6,11 +6,12 @@
 #include <ResourceManager.h>
 
 MainGame::MainGame() : 
-m_screenWidth(1024), 
-m_screenHeight(768), 
+m_screenWidth(1600), 
+m_screenHeight(900), 
 m_boardSize(750),
 m_moveNum(0),
 m_turnColour(0),
+m_boardOrientation(0),
 m_gameState(GameState::PLAY),
 m_curPiece(nullptr),
 m_mouseClickPos(0),
@@ -31,12 +32,24 @@ MainGame::~MainGame(){
 void MainGame::run(bool verbose){
 	initSystems();
 	m_board.init(m_boardStart, m_squareSize, verbose);
+    
+    //NOTE: 0,0 is center of the screen
+    //initialize background from 10 pixels outside screen 
+    m_background.init(glm::vec4(-m_screenWidth/2-10, -m_screenHeight/2-10, m_screenWidth+20, m_screenHeight+20), "textures/dark_gray.png");
+    m_background.setDepth(-2.0f);
+    //initialize border around 8x8 chess board
+    int borderWidth = 0.25*m_squareSize;
+    m_border.init(glm::vec4(-4*m_squareSize - borderWidth, -4*m_squareSize - borderWidth, 
+                            8*m_squareSize + 2 * borderWidth,8*m_squareSize + 2*borderWidth), "textures/darkwood.png");
+    m_border.setDepth(-1.0f); //to have it behind the board
+    
+    //put flip board button in top right of window
+    int buttonWidth = m_squareSize*3/4;
+    int buttonHeight = buttonWidth/2;
+    m_flipBoardButton.init(glm::vec4(m_screenWidth/2-buttonWidth,m_screenHeight/2-buttonHeight,
+                                    buttonWidth,buttonHeight), "textures/dark_brown.png","textures/dark_brown.png");
 
-	m_background.init(glm::vec4(-m_screenWidth/2-10, -m_screenHeight/2-10, m_screenWidth+20, m_screenHeight+20), "textures/dark_gray.png");
-	m_border.init(glm::vec4(-m_screenHeight/2, -m_screenHeight/2, m_screenHeight,m_screenHeight), "textures/darkwood.png");
-	m_border.setDepth(0.5f);
-	//pawns piecetype = 0
-
+    //pawns piecetype = 0
 	for (int i = 0; i < 8; i++) {
 		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, "textures/Pieces/w_pawn.png"));
 		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, "textures/Pieces/b_pawn.png"));
@@ -68,7 +81,7 @@ void MainGame::run(bool verbose){
 			m_board.setPiece(i,j, nullptr);
 		}
 	}
-	m_curPiece = m_board.piece(4,0); //initialize current piece to white king
+	m_curPiece = m_board.isOccupied(4,0); //initialize current piece to white king - maybe initialize to nullptr??!?
 	m_board.calculateAllMoves();    
     std::cout<<"******************************";
     std::cout<<" Starting Game ";
@@ -79,11 +92,8 @@ void MainGame::run(bool verbose){
 
 void MainGame::initSystems(){
 	InitEngine();
-
 	m_window.create("Chess", m_screenWidth, m_screenHeight, 0);
-
 	initShaders();
-	
 	m_spriteBatch.init();
 	m_fpsLimiter.init(m_maxFPS);	
 
@@ -150,66 +160,102 @@ void MainGame::processInput(){
 
 			case SDL_MOUSEBUTTONUP:
 			{
-				m_inputManager.releaseKey(evnt.button.button);
-				glm::vec2 mouseCoords = m_camera.screenCoordsToWorld(m_inputManager.getMouseCoords());
-				glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_turnColour);
-				glm::vec2 newPos = glm::vec2(m_board.getTile(m_curPiece->pos()+glm::vec2(m_squareSize/2, m_squareSize/2), m_turnColour));
-				if (m_turnColour == 1) newPos = glm::vec2(7,7) - newPos;
-				//if piece is being held
-				if (m_curPiece -> isBeingHeld() && m_curPiece->colour() == m_turnColour){
-					//move piece by dragging it
-					if (m_curPiece ->isAMove(newPos)){
-						m_board.movePiece(m_curPiece, newPos, m_turnColour);
-                        m_moveNum += 1;
-						m_turnColour = 1 - m_turnColour;
-                        numMoves = m_board.calculateNextTurnMoves(m_turnColour);
-        
-                        if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
-                        else if (numMoves == 0){
-                            if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
-                            else std::cout<<"WHITE WINS"<<std::endl;
+                //record event
+                m_inputManager.releaseKey(evnt.button.button);
+				
+                //get mouse coordinates
+                glm::vec2 mouseCoords = m_camera.screenCoordsToWorld(m_inputManager.getMouseCoords());
+				
+                //find tile mouse is over
+                glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_boardOrientation);
+                //glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_turnColour);
+				
+                if (m_board.isOnBoard(mouseTile)){
+                    //find new position of piece -- look into this, dont remember what I did
+                    glm::vec2 newPos = glm::vec2(m_board.getTile(m_curPiece->pos()+glm::vec2(m_squareSize/2, m_squareSize/2), m_boardOrientation));
+                    //glm::vec2 newPos = glm::vec2(m_board.getTile(m_curPiece->pos()+glm::vec2(m_squareSize/2, m_squareSize/2), m_turnColour));
+		    		
+                    //invert if blacks turn - change this to rely on m_boardOrientation
+                    if (m_boardOrientation == 1) newPos = glm::vec2(7,7) - newPos;
+                    //if (m_turnColour == 1) newPos = glm::vec2(7,7) - newPos;
+
+    				//if piece is being held
+	    			if (m_curPiece -> isBeingHeld() && m_curPiece->colour() == m_turnColour){
+		    			//move piece by dragging it
+
+                        //verify it's a valid move
+	    				if (m_curPiece -> isAMove(newPos)){
+                            //Move the piece
+			    			m_board.movePiece(m_curPiece, newPos);
+    
+                            //Update values
+                            m_moveNum += 1;
+			    			m_turnColour = 1 - m_turnColour;
+                            numMoves = m_board.calculateNextTurnMoves(m_turnColour);
+            
+                            //Check if end of game
+                            if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+                            else if (numMoves == 0){
+                                if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
+                                else std::cout<<"WHITE WINS"<<std::endl;
+                            }
+                            else{
+                                std::cout<<"##############################";
+                                if (m_turnColour == 0) std::cout<<" White's Turn ";
+                                else std::cout<< " Black's Turn ";
+                                std::cout<<"##############################"<<std::endl;
+                                std::cout<<"Legal Moves: "<<numMoves<<std::endl;
+                            }   
                         }
-                        else{
-                            std::cout<<"##############################";
-                            if (m_turnColour == 0) std::cout<<" White's Turn ";
-                            else std::cout<< " Black's Turn ";
-                            std::cout<<"##############################"<<std::endl;
-                            std::cout<<"Legal Moves: "<<numMoves<<std::endl;
-                        }
-                    }
-					//reset piece to original position if not a valid move
-					else {
-						m_board.resetPiece(m_curPiece);
-					}
-				}
-				//if here we know it's not being held
-				else if (m_curPiece -> isClickedOn() && m_curPiece->colour() == m_turnColour){
-					//move piece to where move is shown 
-					if (m_curPiece->isAMove(mouseTile)){
-						m_board.movePiece(m_curPiece, mouseTile, m_turnColour);
-                        m_moveNum += 1;
-						m_turnColour = 1 - m_turnColour;
-                        numMoves = m_board.calculateNextTurnMoves(m_turnColour);
+		    			//reset piece to original position if not a valid move
+			    		else {
+				    		m_board.resetPiece(m_curPiece);
+					    }
+    				}
+				    //If no piece is being held but there is a current clicked on piece
+    				else if (m_curPiece -> isClickedOn() && m_curPiece->colour() == m_turnColour){
+	    				//move piece by clicking to see moves and clicking on move
                         
-                        if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
-                        else if (numMoves == 0){
-                            if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
-                            else std::cout<<"WHITE WINS"<<std::endl;
+                        //Check if it is a valid move
+				    	if (m_curPiece->isAMove(mouseTile)){
+                            //Move the piece
+						    m_board.movePiece(m_curPiece, mouseTile);
+
+                            //Update values
+                            m_moveNum += 1;
+		    				m_turnColour = 1 - m_turnColour;
+                            numMoves = m_board.calculateNextTurnMoves(m_turnColour);
+                            
+                            //Check if end of game
+                            if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+                            else if (numMoves == 0){
+                                if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
+                                else std::cout<<"WHITE WINS"<<std::endl;
+                            }
+                            else{
+                                std::cout<<"##############################";
+                                if (m_turnColour == 0) std::cout<<" White's Turn ";
+                                else std::cout<< " Black's Turn ";
+                                std::cout<<"##############################"<<std::endl;
+                                std::cout<<"Legal Moves: "<<numMoves<<std::endl;
+                            }
+       		    		}
+                        //If not a valid move
+                        else {
+                            //Remove display of dots
+                            m_curPiece->clickOff();
+                            //m_curPiece = nullptr;
                         }
-                        else{
-                            std::cout<<"##############################";
-                            if (m_turnColour == 0) std::cout<<" White's Turn ";
-                            else std::cout<< " Black's Turn ";
-                            std::cout<<"##############################"<<std::endl;
-                            std::cout<<"Legal Moves: "<<numMoves<<std::endl;
-                        }
-       				}
-                    else {
-                        //Removes dot display of moves if clicking in another location (eg random tile)
-                        m_curPiece->clickOff();
+		    		}
+                }
+                //If the click location was not on the board, check if flip board button was clicked
+                else{
+                    if (m_flipBoardButton.isUnder(mouseCoords)){
+                        m_boardOrientation = 1 - m_boardOrientation;
                     }
-				}
-				m_curPiece -> drop();
+                }
+				//Whether valid move or not, drop the current piece when mouse is lifted
+                m_curPiece -> drop();
 				break;
 			}
 
@@ -244,26 +290,36 @@ void MainGame::processInput(){
 	}
 	
 	if (m_inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
+        //get mouse coordinates
 		glm::vec2 mouseCoords = m_camera.screenCoordsToWorld(m_inputManager.getMouseCoords());
-		glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_turnColour);
-		//still clicking on a piece
+		
+        //find tile from mouse coordinates
+        glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_boardOrientation);
+        //glm::vec2 mouseTile = m_board.getTile(mouseCoords, m_turnColour);
+		
+        //update position of piece if it's being held
 		if (m_curPiece -> isBeingHeld()){
 			m_mouseChange = mouseCoords - m_mouseClickPos;
 			m_curPiece->setPos(m_curPiece->tileToPos(m_curPiece->boardPos()) + m_mouseChange); 
 		}
-		//new click on a piece
+
+		//clicking on a new piece
+        //Check if tile is occupied by a piece
 		else if (m_board.isOccupied(mouseTile) != nullptr){
-			if (m_board.piece(mouseTile) -> colour() == m_turnColour){
+            //If the piece is the players (not the opponents)
+			if (m_board.isOccupied(mouseTile) -> colour() == m_turnColour){
+                //Reset the mouse change to zero 
 				m_mouseChange = glm::vec2(0,0);
+                
+                //record the initial click position
 				m_mouseClickPos = mouseCoords;
-				m_curPiece = m_board.piece(mouseTile);
+
+                //set a new current piece
+                //MAYBE SET CURRENT PIECE TO NULL POINTER IF THIS NEW CURRENT PIECE IS THE PREV ONE--need to fix dots 
+				m_curPiece = m_board.isOccupied(mouseTile);
 				m_curPiece -> hold();
-				if (m_curPiece->isClickedOn()){
-                    m_curPiece->clickOff();
-                }
-                else {
-                    m_curPiece->clickOn();
-                    //std::cout<<"CURRENT PIECE"<<std::endl;
+                m_curPiece -> click();    
+                //std::cout<<"CURRENT PIECE"<<std::endl;
                     //std::cout<<"location: "<<(int)m_curPiece->boardPos().x<<", "<<(int)m_curPiece->boardPos().y<<std::endl;
                     //std::cout<<"type: "<<m_curPiece->type()<<std::endl;
                     //std::cout<<"colour: "<<m_curPiece->colour()<<std::endl;
@@ -272,7 +328,9 @@ void MainGame::processInput(){
                     //    std::cout<<"Move "<<i<<": "<<(int)m_curPiece->moves()[i].x<<", "<<(int)m_curPiece->moves()[i].y<<std::endl;
                     //}
                     //std::cout<<std::endl;
-                }
+            }
+            else{
+                m_curPiece->clickOff();
             }
 		}
 	}
@@ -299,10 +357,14 @@ void MainGame::drawGame(){
 
 	m_spriteBatch.begin(GlyphSortType::FRONT_TO_BACK);
 	
+    //Draw square objects
 	m_background.draw(m_spriteBatch);
 	m_border.draw(m_spriteBatch);
+    m_flipBoardButton.draw(m_spriteBatch);
 
-	m_board.draw(m_spriteBatch, m_turnColour);
+    //Draw board
+	m_board.draw(m_spriteBatch, m_boardOrientation);
+	//m_board.draw(m_spriteBatch, m_turnColour);
 	
 	//m_spriteBatch.draw(pos, uv, texture.id, colour, 0.0f);
 	

@@ -13,7 +13,7 @@
 #include <Timing.h>
 #include "Board.h"
 #include "Piece.h"
-#include "Background.h"
+#include "Square.h"
 
 enum class GameState {PLAY, EXIT};
 
@@ -41,6 +41,7 @@ class MainGame
 		int m_squareSize;
 		int m_moveNum;
 		int m_turnColour;
+        int m_boardOrientation;
 
 		GameState m_gameState;
 		GLSLProgram m_colourProgram;
@@ -52,9 +53,10 @@ class MainGame
 		Piece* m_curPiece;
 		glm::vec2 m_mouseClickPos;
 		glm::vec2 m_mouseChange;
-		Background m_background;
-		Background m_border;
-		
+		Square m_background;
+		Square m_border;
+        Square m_flipBoardButton;
+
 		float m_maxFPS;
 		float m_fps;
 		float m_time;
