@@ -9,13 +9,16 @@ Board::~Board(){
 
 }
 
-void Board::init(int boardStart, int squareSize, bool verbose){
-	m_boardStart = boardStart;
-	m_squareSize = squareSize;
-	m_lightSquare = ResourceManager::getTexture("textures/lightwood2.png");
-	m_darkSquare = ResourceManager::getTexture("textures/darkwood.png");
-	m_moveTexture = ResourceManager::getTexture("textures/dot.png");
+void Board::init(int boardStart, int squareSize, bool verbose, bool showdisplay){
 	m_verbose = verbose;
+    m_showdisplay = showdisplay;
+	if (showdisplay){
+        m_boardStart = boardStart;
+    	m_squareSize = squareSize;
+	    m_lightSquare = ResourceManager::getTexture("textures/lightwood2.png");
+    	m_darkSquare = ResourceManager::getTexture("textures/darkwood.png");
+	    m_moveTexture = ResourceManager::getTexture("textures/dot.png");
+    }
     resetAttackers();
 }
 
@@ -110,7 +113,7 @@ Piece* Board::isOccupied(int x, int y){
 }
 
 void Board::resetAttackers(){
-    std::cout<<"Resetting attackers"<<std::endl;
+    if (m_verbose) std::cout<<"Resetting attackers"<<std::endl;
     for (unsigned int p = 0; p < 2; p++){
         for (unsigned int i = 0; i < 8; i++){
             for (unsigned int j = 0; j < 8; j++){
@@ -811,7 +814,7 @@ void Board::pruneMovesForChecksAndPins(Piece* king){
     glm::vec2 move;
     int numkingattackers = isKingInCheck(king);
 
-    std::cout<<"Pruning moves for check - number of attackers: "<<numkingattackers<<std::endl;
+    if (m_verbose) std::cout<<"Pruning moves for check - number of attackers: "<<numkingattackers<<std::endl;
     
     //Two+ attackers, king has to move
     if (numkingattackers == 2){
@@ -854,9 +857,6 @@ void Board::pruneMovesForChecksAndPins(Piece* king){
             }
         }
     }
-
-    std::cout<<"(end of pruning for checks)"<<std::endl;
-    printState();
 }
 
 bool Board::doesBlockCheck(Piece* king, Piece* piece, glm::vec2 move){
@@ -902,7 +902,11 @@ void Board::movePiece(Piece* piece, glm::vec2 boardPos){
 }
 
 void Board::movePiece(Piece* piece, int x, int y){
-    std::cout<<"Moving Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" to "<< x<<", "<<y<<std::endl;
+    //NEED TO ADD PAWN GETTING TO THE END
+    
+    piece->clickOff();
+
+    if (m_verbose) std::cout<<"Moving Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" to "<< x<<", "<<y<<std::endl;
     if (piece -> type() == 5){	
 		//castling left
 		if (x == (int)piece->boardPos().x - 2){
@@ -918,12 +922,17 @@ void Board::movePiece(Piece* piece, int x, int y){
     if (tilepiece != nullptr) m_takenPieces.push_back(tilepiece);
     
     //En passant
-    else{ //tilepiece is empty
+    //location piece is going to is empty
+    //if moving piece is a pawn
+    else if (piece->type() == 0){
         tilepiece = isOccupied(x,(int)piece->boardPos().y);
-        if (tilepiece->type() == 0 && piece->type() == 0 &&
-                tilepiece->timesMoved() == 1 && tilepiece->wasJustMoved()){
-            m_takenPieces.push_back(tilepiece);
-            setPiece(tilepiece->boardPos(),nullptr);
+        //if en passant location is not empty
+        if (tilepiece != nullptr){
+            //if piece in en passant loc is a patn, was moved once, and was just moved - might need to add which rank piece is on
+            if (tilepiece->type() == 0 && tilepiece->timesMoved() == 1 && tilepiece->wasJustMoved()){
+                m_takenPieces.push_back(tilepiece);
+                setPiece(tilepiece->boardPos(),nullptr);
+            }
         }
     }
 
@@ -939,19 +948,17 @@ void Board::movePiece(Piece* piece, int x, int y){
     //update justmoved for en passant
     resetJustMoved(piece->colour());
 
-    std::cout<<"(end of move piece)"<<std::endl;
-    printState();
+    if (m_verbose) printPlayerState();
 }
 
 int Board::calculateNextTurnMoves(int nextTurnColour){
-    std::cout<<"Calculating Next Turn Moves (next turn is player "<<nextTurnColour<<")"<<std::endl;
+    if (m_verbose) std::cout<<"Calculating Next Turn Moves (next turn is player "<<nextTurnColour<<")"<<std::endl;
     //For next players turn
     calculateAllMoves(); //necessary for all to include the moved piece which may have new attacks on king
     
     //find opponents king
     Piece* piece;
     Piece* oppking;
-    std::cout<<"Looking for king of colour "<<nextTurnColour<<std::endl;
     for (unsigned int i = 0; i < 8; i++){
         for (unsigned int j = 0; j < 8; j++){
             piece = isOccupied(i,j);
@@ -966,9 +973,6 @@ int Board::calculateNextTurnMoves(int nextTurnColour){
     
     //Prune moves to get out of checks and not move pinned pieces
     pruneMovesForChecksAndPins(oppking);
-
-    std::cout<<"(end of calculating next turn moves)"<<std::endl;
-    printState();
 
     //return -1 if draw, 0 if win/loss, number of moves otherwise
     int numMoves = sumMoves(nextTurnColour);
@@ -991,8 +995,33 @@ int Board::sumMoves(int turnColour){
     return movetot;
 }
 
-void Board::printState(){
+void Board::printBoard(){
     std::cout<<"Board state:"<<std::endl;
+    std::cout<<"\033[32mWhite\033[0m"<<std::endl;
+    std::cout<<"\033[31mBlack\033[0m"<<std::endl;
+    Piece* piece;
+    std::vector<char> rep{'p','R','N','B','Q','K'};
+
+    std::cout<<"  ";
+    for (unsigned int i = 0; i < 8; i++) std::cout<<i+1<<" ";
+    std::cout<<std::endl;
+
+    for (unsigned int i = 0; i < 8; i++){
+        std::cout<<(char)(97+i)<<" ";
+        for (unsigned int j = 0; j < 8; j++){
+            piece = isOccupied(i,j);
+            if (piece != nullptr){
+                if (piece->colour() == 0) std::cout << "\033[32m"<<rep[piece->type()]<<"\033[0m ";
+                if (piece->colour() == 1) std::cout << "\033[31m"<<rep[piece->type()]<<"\033[0m ";
+            }
+            else std::cout << "- ";
+        }
+        std::cout<<std::endl;
+    }
+    std::cout<<std::endl;
+}
+
+void Board::printPlayerState(){
     std::cout<<"player 0\t\t\tplayer 1"<<std::endl;
     Piece* piece;
     for (unsigned int i = 0; i < 8; i++){
@@ -1048,7 +1077,7 @@ void Board::tempUnmovePiece(Piece* piece, glm::vec2 move){
 }
 
 void Board::calculateAllMoves(){
-    std::cout<<"Calculating All Moves"<<std::endl;
+    if (m_verbose) std::cout<<"Calculating All Moves"<<std::endl;
     resetAttackers();
     Piece* piece;
     //Calculate all moves other than kings
@@ -1073,8 +1102,7 @@ void Board::calculateAllMoves(){
 			}
 		}
     }
-    std::cout<<"(end of calculate all moves)"<<std::endl;
-    printState();
+    printBoard();
 }
 
 void Board::resetPiece(Piece* piece){

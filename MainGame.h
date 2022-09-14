@@ -20,14 +20,17 @@ enum class GameState {PLAY, EXIT};
 class MainGame
 {
 	public:
-		MainGame();
+		MainGame(bool verbose, bool showdisplay);
 		~MainGame();
 
-		void run(bool verbose);
+		void run();
 
 
 	private:
-		void initSystems();
+        void setCurPiece(glm::vec2 mouseCoords, glm::vec2 mouseTile);
+        void dropCurPiece();
+        void takeTurn(glm::vec2 newPos);
+        void initSystems();
 		void initShaders();
 		void gameLoop();
 		void processInput();
@@ -42,6 +45,14 @@ class MainGame
 		int m_moveNum;
 		int m_turnColour;
         int m_boardOrientation;
+        bool m_curPieceExists;
+        bool m_verbose;
+        bool m_showdisplay;
+        bool m_autoflip;
+        glm::vec2 m_mouseTile;
+        glm::vec2 m_mouseCoords;
+		glm::vec2 m_mouseClickPos;
+		glm::vec2 m_mouseChange;
 
 		GameState m_gameState;
 		GLSLProgram m_colourProgram;
@@ -51,11 +62,10 @@ class MainGame
 		FPSLimiter m_fpsLimiter;
 		Board m_board;
 		Piece* m_curPiece;
-		glm::vec2 m_mouseClickPos;
-		glm::vec2 m_mouseChange;
 		Square m_background;
 		Square m_border;
         Square m_flipBoardButton;
+        Square m_autoFlipButton;
 
 		float m_maxFPS;
 		float m_fps;

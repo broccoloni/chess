@@ -8,7 +8,7 @@
 class Piece
 {
 	public:
-		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, std::string texturePath);	
+		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, std::string texturePath, bool showdisplay);	
 		~Piece();
 			
 		int m_timesMoved;

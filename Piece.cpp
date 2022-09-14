@@ -2,7 +2,7 @@
 #include <ResourceManager.h>
 #include <iostream>
 
-Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, std::string texturePath){
+Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, std::string texturePath, bool showdisplay){
 	m_beingHeld = false;
 	m_clickedOn = false;
     m_justMoved = false;
@@ -13,7 +13,7 @@ Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour
 	m_timesMoved = 0;
 	m_boardPos = boardPos;
 	m_pos = tileToPos(boardPos);
-	m_texture = ResourceManager::getTexture(texturePath.c_str());
+	if (showdisplay) m_texture = ResourceManager::getTexture(texturePath.c_str());
 }
 
 Piece::~Piece(){

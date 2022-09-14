@@ -1,2 +1,3 @@
-Fix the dots so other teams dots don't show when it's your turn (probably has to do with curpiece in maingame)
-Change the auto flip board to a button
+add pawn getting to the end of the board
+finish buttons with text
+add main menu
