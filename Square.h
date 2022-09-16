@@ -3,6 +3,8 @@
 #include <string>
 #include <GLTexture.h>
 #include <glm/glm.hpp>
+#include <ResourceManager.h>
+#include <iostream>
 
 class Square
 {
@@ -15,6 +17,9 @@ class Square
         bool isUnder(glm::vec2 mousepos);
         void draw(SpriteBatch& spriteBatch);
 		void setDepth(float depth) { m_depth = depth; }
+        void setPos(glm::vec2 pos) {m_region = glm::vec4(pos.x,pos.y,m_region[2],m_region[3]); }
+        void setTexture(std::string texturePath){m_texture = ResourceManager::getTexture(texturePath.c_str()); } 
+        void printDepth(){ std::cout<<m_depth<<std::endl; }
 
 	private:
 		float m_depth;

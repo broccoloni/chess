@@ -14,6 +14,7 @@ MainGame::MainGame(bool verbose, bool showdisplay){
     m_boardOrientation = 0;
     m_curPieceExists = false;
     m_autoflip = true;
+    m_isPromoting = false;
     m_mouseTile = glm::vec2(0,0);
     m_mouseCoords = glm::vec2(0,0);
     m_mouseClickPos = glm::vec2(0,0);
@@ -64,35 +65,52 @@ void MainGame::run(){
         m_autoFlipButton.init(glm::vec4(m_screenWidth/2-buttonWidth-m_squareSize,m_screenHeight/2-buttonHeight,
                                         buttonWidth,buttonHeight), "textures/dark_brown.png","textures/dark_brown.png");
         
+        //pawn promotion boxes
+        m_promoBoxes.reserve(12);
+        for (int i = -2; i < 2; i++){
+            m_promoBoxes[i+2].init(glm::vec4(i*m_squareSize,-0.5*m_squareSize,m_squareSize,m_squareSize),"textures/light_gray.png");
+            m_promoBoxes[i+2].setDepth(4.0f);
+        }
+        Piece* piece = new Piece();
+        //white piece texture in pawn promotion box
+        for (int i = -2; i < 2; i++){
+            m_promoBoxes[i+6].init(glm::vec4(i*m_squareSize,-0.5*m_squareSize,m_squareSize,m_squareSize),piece->texturePath(i+3,0));
+            m_promoBoxes[i+6].setDepth(5.0f);
+        }
+        //black piece texture in pawn promotion box
+        for (int i = -2; i < 2; i++){
+            m_promoBoxes[i+10].init(glm::vec4(i*m_squareSize,-0.5*m_squareSize,m_squareSize,m_squareSize),piece->texturePath(i+3,1));
+            m_promoBoxes[i+10].setDepth(5.0f);
+        }
     }
 	m_board.init(m_boardStart, m_squareSize, m_verbose, m_showdisplay);
     
     //pawns piecetype = 0
 	for (int i = 0; i < 8; i++) {
-		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, "textures/Pieces/w_pawn.png", m_showdisplay));
-		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, "textures/Pieces/b_pawn.png", m_showdisplay));
+		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, m_showdisplay));
+		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, m_showdisplay)); 
 	}
 	//rooks piecetype = 1
-	m_board.setPiece(0,0, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 0), 0, 1, "textures/Pieces/w_rook.png", m_showdisplay));
-	m_board.setPiece(0,7, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 7), 1, 1, "textures/Pieces/b_rook.png", m_showdisplay));
-	m_board.setPiece(7,0, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 0), 0, 1, "textures/Pieces/w_rook.png", m_showdisplay));
-	m_board.setPiece(7,7, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 7), 1, 1, "textures/Pieces/b_rook.png", m_showdisplay));
+	m_board.setPiece(0,0, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 0), 0, 1, m_showdisplay));
+	m_board.setPiece(0,7, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 7), 1, 1, m_showdisplay));
+	m_board.setPiece(7,0, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 0), 0, 1, m_showdisplay));
+	m_board.setPiece(7,7, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 7), 1, 1, m_showdisplay));
 	//knights piecetype = 2
-	m_board.setPiece(1,0, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 0), 0, 2, "textures/Pieces/w_knight.png", m_showdisplay));
-	m_board.setPiece(1,7, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 7), 1, 2, "textures/Pieces/b_knight.png", m_showdisplay));
-	m_board.setPiece(6,0, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 0), 0, 2, "textures/Pieces/w_knight.png", m_showdisplay));
-	m_board.setPiece(6,7, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 7), 1, 2, "textures/Pieces/b_knight.png", m_showdisplay));
+	m_board.setPiece(1,0, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 0), 0, 2, m_showdisplay));
+	m_board.setPiece(1,7, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 7), 1, 2, m_showdisplay));
+	m_board.setPiece(6,0, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 0), 0, 2, m_showdisplay));
+	m_board.setPiece(6,7, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 7), 1, 2, m_showdisplay));
 	//bishops piecetype = 3
-	m_board.setPiece(2,0, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 0), 0, 3, "textures/Pieces/w_bishop.png", m_showdisplay));
-	m_board.setPiece(2,7, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 7), 1, 3, "textures/Pieces/b_bishop.png", m_showdisplay));
-	m_board.setPiece(5,0, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 0), 0, 3, "textures/Pieces/w_bishop.png", m_showdisplay));
-	m_board.setPiece(5,7, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 7), 1, 3, "textures/Pieces/b_bishop.png", m_showdisplay));
+	m_board.setPiece(2,0, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 0), 0, 3, m_showdisplay));
+	m_board.setPiece(2,7, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 7), 1, 3, m_showdisplay));
+	m_board.setPiece(5,0, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 0), 0, 3, m_showdisplay));
+	m_board.setPiece(5,7, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 7), 1, 3, m_showdisplay));
 	//queens piecetype = 4
-	m_board.setPiece(3,0, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 0), 0, 4, "textures/Pieces/w_queen.png", m_showdisplay));
-	m_board.setPiece(3,7, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 7), 1, 4, "textures/Pieces/b_queen.png", m_showdisplay));
+	m_board.setPiece(3,0, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 0), 0, 4, m_showdisplay));
+	m_board.setPiece(3,7, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 7), 1, 4, m_showdisplay));
 	//kings piecetype = 5
-	m_board.setPiece(4,0, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 0), 0, 5, "textures/Pieces/w_king.png", m_showdisplay));
-	m_board.setPiece(4,7, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 7), 1, 5, "textures/Pieces/b_king.png", m_showdisplay));
+	m_board.setPiece(4,0, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 0), 0, 5, m_showdisplay));
+	m_board.setPiece(4,7, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 7), 1, 5, m_showdisplay));
 
 	for (int j = 2; j < 6; j++){
 		for (int i = 0; i < 8; i++){
@@ -185,14 +203,25 @@ void MainGame::gameLoop(){
                 continue;
             }
             if (m_curPiece -> isAMove(glm::vec2(file,rank))){
+                //pawn promotion
+                if (rank == (1 - m_turnColour)*7 && m_curPiece->type() == 0){
+                    std::cout<<"What would you like to promote to (R,N,B,Q): ";
+                    std::cin >> loc; //temp placeholder to get promotion
+                    if (loc == "R") m_curPiece->promote(1);
+                    else if (loc == "N") m_curPiece->promote(2);
+                    else if (loc == "B") m_curPiece->promote(3);
+                    else if (loc == "Q") m_curPiece->promote(4);
+                    else {
+                        std::cout<<"Invalid promotion"<<std::endl;
+                        continue;
+                    }
+                }
                 takeTurn(glm::vec2(file,rank));
-                m_curPiece = nullptr; //CAN MAYBE PUT THIS LINE IN  TAKETURN
             }
             else{
                 std::cout<<"Invlaid move"<<std::endl;
                 continue;
             }
-
         }
 	}
 }
@@ -231,8 +260,12 @@ void MainGame::processInput(){
                 //find tile mouse is over
                 m_mouseTile = m_board.getTile(m_mouseCoords, m_boardOrientation);
     			
+                if (m_isPromoting){
+                    //just to make sure nothing gets clicked when pawn is being promoted
+                }
+
                 //if current piece exists
-                if (m_curPieceExists){
+                else if (m_curPieceExists){
                     //if tile is on board
                     if (m_board.isOnBoard(m_mouseTile)){
                         //if current piece is being held
@@ -240,9 +273,16 @@ void MainGame::processInput(){
                             //move piece by dragging it
                             //verify if it's a valid move
                             if (m_curPiece -> isAMove(m_mouseTile)){
-                                takeTurn(m_mouseTile);
-                                m_curPiece -> drop();
-                                dropCurPiece(); //might need to switch the order of this and prev line
+                                //check for pawn promotion
+                                if (m_mouseTile.y == (1-m_turnColour)*7 && m_curPiece -> type() == 0){
+                                    m_isPromoting = true;
+                                    m_board.movePiece(m_curPiece, m_mouseTile);
+                                    m_curPiece -> drop();
+                                }
+                                else{
+                                    m_curPiece -> drop();
+                                    takeTurn(m_mouseTile);
+                                }
                             }
                             //invalid move
                             //reset piece to original position if not a valid move
@@ -276,10 +316,16 @@ void MainGame::processInput(){
                     }
                     //tile not on board but curpiece exists
                     else{
+                        //check if piece was being held
+                        if (m_curPiece -> isBeingHeld()){
+                            //reset piece
+		    		    	m_board.resetPiece(m_curPiece);
+    		                m_curPiece->drop();
+                        }
                         dropCurPiece();
                     }
                 }
-                //If the click location was not on the board
+                //If the click release location was not on the board
                 if (!m_board.isOnBoard(m_mouseTile)){
                     //check if flip board button was clicked
                     if (m_flipBoardButton.isUnder(m_mouseCoords)){
@@ -331,20 +377,48 @@ void MainGame::processInput(){
         //find tile from mouse coordinates
         m_mouseTile = m_board.getTile(m_mouseCoords, m_boardOrientation);
 		
+        //check if promoting a piece
+        if (m_isPromoting){
+            for (int i = 0; i < 4; i++){
+                if (m_promoBoxes[i].isUnder(m_mouseCoords)){
+                    if (m_verbose) {
+                        std::vector<std::string> piecetypes{"Rook","Knight","Bishop","Queen"};
+                        std::cout<<"Promoting pawn to "<<piecetypes[i]<<std::endl;
+                    }
+                    m_curPiece->promote(i+1);
+                    m_isPromoting = false;
+                    takeTurn(m_curPiece->boardPos());
+                    break;
+                }
+            }
+
+        }
+
         //if current piece exists
-        if (m_curPieceExists){
+        else if (m_curPieceExists){
             //update position of piece if it's being held
 		    if (m_curPiece -> isBeingHeld()){
-			    m_mouseChange = m_mouseCoords - m_mouseClickPos;
-			    m_curPiece->setPos(m_curPiece->tileToPos(m_curPiece->boardPos()) + m_mouseChange); 
-		    }
+                m_mouseChange = (m_mouseCoords - m_mouseClickPos);
+                if (m_boardOrientation == 0){
+                    m_curPiece->setPos(m_curPiece->tileToPos(m_curPiece->boardPos()) + m_mouseChange); 
+                }
+                else{
+                    m_curPiece->setPos(m_curPiece->tileToPos(m_curPiece->boardPos()) - m_mouseChange);  
+                }
+            }
             //if not holding a piece but curpiece exists
             else{ 
                 //check if click location is valid move
                 if (m_curPiece->isAMove(m_mouseTile)){
-                    //make move
-                    takeTurn(m_mouseTile);
-                    dropCurPiece(); //might need to put this before take turn
+                    //check for pawn promotion
+                    if (m_mouseTile.y == (1-m_turnColour)*7 && m_curPiece->type() == 0){
+                        m_isPromoting = true;
+                        m_board.movePiece(m_curPiece, m_mouseTile);
+                    }
+                    else{
+                        //make move
+                        takeTurn(m_mouseTile);
+                    }
                 }
                 //if click location is not a valid move
                 //but there is a piece there
@@ -387,6 +461,7 @@ void MainGame::setCurPiece(glm::vec2 mouseCoords, glm::vec2 mouseTile){
     m_curPiece = m_board.isOccupied(mouseTile);
     m_curPiece -> hold();
     m_curPiece -> clickOn();
+    m_curPiece -> setDepth(6.0f);
     m_curPieceExists = true;
     
 }
@@ -394,6 +469,7 @@ void MainGame::setCurPiece(glm::vec2 mouseCoords, glm::vec2 mouseTile){
 void MainGame::dropCurPiece(){
     //click off current piece
     m_curPiece -> clickOff();
+    m_curPiece -> setDepth(2.0f);
     m_curPiece = nullptr;
     m_curPieceExists = false;
 }
@@ -404,6 +480,9 @@ void MainGame::takeTurn(glm::vec2 mouseTile){
     //Move the piece
     m_board.movePiece(m_curPiece, mouseTile);
 
+    //drop current piece
+    dropCurPiece();
+
     //Update values
     m_moveNum += 1;
     m_turnColour = 1 - m_turnColour;
@@ -411,19 +490,17 @@ void MainGame::takeTurn(glm::vec2 mouseTile){
             
     if (m_autoflip) m_boardOrientation = m_turnColour;
 
-    if (m_verbose){
-        if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
-        else if (numMoves == 0){
-            if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
-            else std::cout<<"WHITE WINS"<<std::endl;
-        }
-        else{
-            std::cout<<"##############################";
-            if (m_turnColour == 0) std::cout<<" White's Turn ";
-            else std::cout<< " Black's Turn ";
-            std::cout<<"##############################"<<std::endl;
-            std::cout<<"Legal Moves: "<<numMoves<<std::endl;
-        }
+    if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+    else if (numMoves == 0){
+        if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
+        else std::cout<<"WHITE WINS"<<std::endl;
+    }
+    else{
+        std::cout<<"##############################";
+        if (m_turnColour == 0) std::cout<<" White's Turn ";
+        else std::cout<< " Black's Turn ";
+        std::cout<<"##############################"<<std::endl;
+        std::cout<<"Legal Moves: "<<numMoves<<std::endl;
     }
 }
 
@@ -455,9 +532,19 @@ void MainGame::drawGame(){
     m_flipBoardButton.draw(m_spriteBatch);
     m_autoFlipButton.draw(m_spriteBatch);
 
+    if (m_isPromoting){
+        //draw the promotion box background
+        for (unsigned int i = 0; i < 4; i++){
+            m_promoBoxes[i].draw(m_spriteBatch);
+        }
+        //draw the promotion box piece textures
+        for (unsigned int i = 0; i < 4; i++){
+            m_promoBoxes[4 + 4*m_turnColour + i].draw(m_spriteBatch);
+        }
+    }
+
     //Draw board
 	m_board.draw(m_spriteBatch, m_boardOrientation);
-	//m_board.draw(m_spriteBatch, m_turnColour);
 	
 	//m_spriteBatch.draw(pos, uv, texture.id, colour, 0.0f);
 	

@@ -1,6 +1,5 @@
 #include "Square.h"
-#include <ResourceManager.h>
-#include <iostream>
+
 Square::Square(){
     m_clicked = false;	
     m_hasClickedTexture = false;

@@ -49,6 +49,7 @@ class MainGame
         bool m_verbose;
         bool m_showdisplay;
         bool m_autoflip;
+        bool m_isPromoting;
         glm::vec2 m_mouseTile;
         glm::vec2 m_mouseCoords;
 		glm::vec2 m_mouseClickPos;
@@ -66,7 +67,7 @@ class MainGame
 		Square m_border;
         Square m_flipBoardButton;
         Square m_autoFlipButton;
-
+        std::vector<Square> m_promoBoxes; //vec of len 12 - 4 for background texture, 4 for white piece texture, 4 for black piece texture
 		float m_maxFPS;
 		float m_fps;
 		float m_time;

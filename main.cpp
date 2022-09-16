@@ -6,7 +6,6 @@ int main(int argc, char* argv[]){
 	bool verbose = false;
     bool showdisplay = true;
     for (int i = 0; i < argc; i++){
-        std::cout<<i<<" "<<argv[i]<<std::endl;
         if (strcmp(argv[i], "--no-display")==0 || strcmp(argv[i], "-nd")==0) showdisplay = false;
         if (strcmp(argv[i], "--verbose")==0 || strcmp(argv[i], "-v")==0) verbose = true;
     }

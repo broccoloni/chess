@@ -22,7 +22,7 @@ void Board::init(int boardStart, int squareSize, bool verbose, bool showdisplay)
     resetAttackers();
 }
 
-void Board::draw(SpriteBatch& spriteBatch, int turnColour){
+void Board::draw(SpriteBatch& spriteBatch, int boardOrientation){
 	glm::vec4 uv(0.0f, 0.0f, 1.0f, 1.0f);
 	Colour colour;
 	colour.r = 255;
@@ -30,6 +30,7 @@ void Board::draw(SpriteBatch& spriteBatch, int turnColour){
 	colour.b = 255;
 	colour.a = 255;
 	
+    //Drawing the tiles
 	int lnum, dnum;
 	glm::vec4 posAndSize;
 	for (int i = 0; i < 8; i++){
@@ -48,18 +49,20 @@ void Board::draw(SpriteBatch& spriteBatch, int turnColour){
 			spriteBatch.draw(posAndSize, uv, m_darkSquare.id, colour, 1.0f);
 		}	
 	}
+    //drawing the pieces
 	Piece* piece;
 	for (int i = 0; i < 8; i++){
 		for (int j = 0; j < 8; j++){
 			if (m_pieces[i][j] != nullptr){
 				piece = m_pieces[i][j];
-				piece -> draw(spriteBatch, turnColour);
-				if (piece -> isClickedOn()){
+				piece -> draw(spriteBatch, boardOrientation);
+				//drawing move dots
+                if (piece -> isClickedOn()){
 					int size = 30;
 					int xloc, yloc;
 					colour.a = 180;
 					for (unsigned int k = 0; k < piece -> moves().size(); k++){
-						if (turnColour == 0){
+						if (boardOrientation == 0){
 							xloc = (m_squareSize - size)/2 + m_boardStart + piece->moves()[k].x * m_squareSize; 
 							yloc = (m_squareSize - size)/2 + m_boardStart + piece->moves()[k].y * m_squareSize;
 						}
@@ -74,6 +77,11 @@ void Board::draw(SpriteBatch& spriteBatch, int turnColour){
 			}
 		}
 	}
+    //Drawing taken pieces
+    for (unsigned int i = 0; i < m_takenPieces.size(); i++){
+        piece = m_takenPieces[i];
+        piece->draw(spriteBatch, boardOrientation);
+    }
 }
 
 glm::vec2 Board::getTile(glm::vec2 mouseCoords, int boardOrientation){
@@ -902,11 +910,12 @@ void Board::movePiece(Piece* piece, glm::vec2 boardPos){
 }
 
 void Board::movePiece(Piece* piece, int x, int y){
-    //NEED TO ADD PAWN GETTING TO THE END
-    
-    piece->clickOff();
+    if (piece->boardPos().x == x && piece->boardPos().y == y) return; 
 
     if (m_verbose) std::cout<<"Moving Piece at "<<piece->boardPos().x<<", "<<piece->boardPos().y<<" to "<< x<<", "<<y<<std::endl;
+    piece->clickOff();
+    
+    //Castling
     if (piece -> type() == 5){	
 		//castling left
 		if (x == (int)piece->boardPos().x - 2){
@@ -919,28 +928,25 @@ void Board::movePiece(Piece* piece, int x, int y){
 	}
 	//get piece at location where piece is going to
     Piece* tilepiece = isOccupied(x,y);
-    if (tilepiece != nullptr) m_takenPieces.push_back(tilepiece);
-    
-    //En passant
+    if (tilepiece != nullptr) {
+        tilepiece->capture();
+        m_takenPieces.push_back(tilepiece);
+    }
     //location piece is going to is empty
-    //if moving piece is a pawn
+    //if pawn, check for en passant
     else if (piece->type() == 0){
-        tilepiece = isOccupied(x,(int)piece->boardPos().y);
-        //if en passant location is not empty
-        if (tilepiece != nullptr){
-            //if piece in en passant loc is a patn, was moved once, and was just moved - might need to add which rank piece is on
-            if (tilepiece->type() == 0 && tilepiece->timesMoved() == 1 && tilepiece->wasJustMoved()){
-                m_takenPieces.push_back(tilepiece);
-                setPiece(tilepiece->boardPos(),nullptr);
-            }
+        //check if pawn is moving diagonal
+        if (x != piece->boardPos().x){
+            tilepiece = isOccupied(x,(int)piece->boardPos().y);
+            m_takenPieces.push_back(tilepiece);
+            setPiece(tilepiece->boardPos(),nullptr);
         }
     }
-
     //set original piece location to null
     setPiece(piece->boardPos(), nullptr);
 
     //set new piece in move location
-	setPiece(x,y, piece);
+    setPiece(x,y, piece);
 
     //update piece attributes
     piece->move(x,y);

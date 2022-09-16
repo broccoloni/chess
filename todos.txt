@@ -1,3 +1,6 @@
-add pawn getting to the end of the board
+add repetition rule and draw
+add insufficient material
+add 50 move rule
 finish buttons with text
 add main menu
+add ai

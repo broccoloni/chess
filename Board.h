@@ -3,6 +3,7 @@
 #include <SpriteBatch.h>
 #include <GLTexture.h>
 #include "Piece.h"
+#include "Square.h"
 #include <vector>
 
 class Board
@@ -12,7 +13,7 @@ class Board
 		~Board();
 
 		void init(int boardStart, int squareSize, bool verbose, bool showdisplay);
-		void draw(SpriteBatch& spriteBatch, int turnColour);
+		void draw(SpriteBatch& spriteBatch, int boardOrientation);
 		glm::vec2 getTile(glm::vec2 mouseCoords, int boardOrientation);
 		Piece* isOccupied(glm::vec2 tile);
 		Piece* isOccupied(int x, int y);
