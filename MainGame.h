@@ -15,7 +15,7 @@
 #include "Piece.h"
 #include "Square.h"
 
-enum class GameState {PLAY, EXIT};
+enum class GameState {PLAY, EXIT, DRAW, WHITEWINS, BLACKWINS};
 
 class MainGame
 {
@@ -23,7 +23,7 @@ class MainGame
 		MainGame(bool verbose, bool showdisplay);
 		~MainGame();
 
-		void run();
+		unsigned int run();
 
 
 	private:

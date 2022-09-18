@@ -48,8 +48,9 @@ class Board
 	private:
 		int m_boardStart;
 		int m_squareSize;
+        int m_movesSinceCaptureOrPawnMove;
         int m_attackers[2][8][8]; //each player x 8 x 8 board attackers[0][:][:] are locations player 0 is attacking
-		bool m_verbose;		
+        bool m_verbose;		
         bool m_showdisplay;
         std::vector<Piece *> m_takenPieces;
 		GLTexture m_lightSquare;

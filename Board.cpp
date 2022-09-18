@@ -12,7 +12,8 @@ Board::~Board(){
 void Board::init(int boardStart, int squareSize, bool verbose, bool showdisplay){
 	m_verbose = verbose;
     m_showdisplay = showdisplay;
-	if (showdisplay){
+    m_movesSinceCaptureOrPawnMove = 0;
+    if (showdisplay){
         m_boardStart = boardStart;
     	m_squareSize = squareSize;
 	    m_lightSquare = ResourceManager::getTexture("textures/lightwood2.png");
@@ -931,16 +932,21 @@ void Board::movePiece(Piece* piece, int x, int y){
     if (tilepiece != nullptr) {
         tilepiece->capture();
         m_takenPieces.push_back(tilepiece);
+        m_movesSinceCaptureOrPawnMove = 0;
     }
     //location piece is going to is empty
     //if pawn, check for en passant
     else if (piece->type() == 0){
+        m_movesSinceCaptureOrPawnMove = 0;
         //check if pawn is moving diagonal
         if (x != piece->boardPos().x){
             tilepiece = isOccupied(x,(int)piece->boardPos().y);
             m_takenPieces.push_back(tilepiece);
             setPiece(tilepiece->boardPos(),nullptr);
         }
+    }
+    else{
+        m_movesSinceCaptureOrPawnMove += 1;
     }
     //set original piece location to null
     setPiece(piece->boardPos(), nullptr);
@@ -980,9 +986,20 @@ int Board::calculateNextTurnMoves(int nextTurnColour){
     //Prune moves to get out of checks and not move pinned pieces
     pruneMovesForChecksAndPins(oppking);
 
+    //triple repetition rule
     if (m_verbose) std::cout<<"Adding board state"<<std::endl;
     int numreps = m_boardStates.addState(m_pieces);
     if (m_verbose) std::cout<<"Number of repetitions: "<<numreps<<std::endl;
+    if (numreps == 3){
+        if (m_verbose) std::cout<<"Draw by triple repetition rule"<<std::endl;
+        return -1; 
+    }
+    //50 move rule
+    //Note: moves in this rule count as each player taking a turn
+    if (m_movesSinceCaptureOrPawnMove == 100){
+        if (m_verbose) std::cout<<"Draw by 50 move rule"<<std::endl;
+        return -1;
+    }
     //printing latest board
     /*
     int board[8][8] = m_boardStates.getBoard();
@@ -994,7 +1011,6 @@ int Board::calculateNextTurnMoves(int nextTurnColour){
     }
     std::cout<<std::endl;
     */
-    if (numreps == 3) return -1; 
 
     //return -1 if draw, 0 if win/loss, number of moves otherwise
     int numMoves = sumMoves(nextTurnColour);

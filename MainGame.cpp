@@ -35,7 +35,7 @@ MainGame::~MainGame(){
 
 }
 
-void MainGame::run(){
+unsigned int MainGame::run(){
     if (m_showdisplay){
         //NOTE: 0,0 is center of the screen
         initSystems();
@@ -126,6 +126,10 @@ void MainGame::run(){
         std::cout<<std::endl;
     }
     gameLoop();
+    if (m_gameState == GameState::DRAW) return 1;
+    if (m_gameState == GameState::WHITEWINS) return 2;
+    if (m_gameState == GameState::BLACKWINS) return 3;
+    return 0; //if close button was hit
 }
 
 void MainGame::initSystems(){
@@ -151,7 +155,7 @@ void MainGame::gameLoop(){
     std::string loc;
 
     //start game loop
-    while (m_gameState != GameState::EXIT){
+    while (m_gameState == GameState::PLAY){
         if (m_showdisplay){
             m_fpsLimiter.begin();
 
@@ -491,10 +495,19 @@ void MainGame::takeTurn(glm::vec2 mouseTile){
             
     if (m_autoflip) m_boardOrientation = m_turnColour;
 
-    if (numMoves == -1) std::cout<<"DRAW!"<<std::endl;
+    if (numMoves == -1) {
+        std::cout<<"DRAW!"<<std::endl;
+        m_gameState = GameState::DRAW;
+    }
     else if (numMoves == 0){
-        if (m_turnColour == 0) std::cout<<"BLACK WINS!"<<std::endl;
-        else std::cout<<"WHITE WINS"<<std::endl;
+        if (m_turnColour == 0){
+            std::cout<<"BLACK WINS!"<<std::endl;
+            m_gameState = GameState::BLACKWINS;
+        }
+        else{
+            std::cout<<"WHITE WINS"<<std::endl;
+            m_gameState = GameState::WHITEWINS;
+        }
     }
     else{
         std::cout<<"##############################";

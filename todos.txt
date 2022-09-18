@@ -1,6 +1,5 @@
-add repetition rule and draw
 add insufficient material
-add 50 move rule
+dots are appearing on next turn for some reason - fix this
 finish buttons with text
 add main menu
 add ai
