@@ -5,6 +5,7 @@
 #include "Piece.h"
 #include "Square.h"
 #include <vector>
+#include "BoardStates.h"
 
 class Board
 {
@@ -47,12 +48,13 @@ class Board
 	private:
 		int m_boardStart;
 		int m_squareSize;
+        int m_attackers[2][8][8]; //each player x 8 x 8 board attackers[0][:][:] are locations player 0 is attacking
+		bool m_verbose;		
+        bool m_showdisplay;
+        std::vector<Piece *> m_takenPieces;
 		GLTexture m_lightSquare;
 		GLTexture m_darkSquare;
 		GLTexture m_moveTexture;
 		Piece* m_pieces[8][8];
-        int m_attackers[2][8][8]; //each player x 8 x 8 board attackers[0][:][:] are locations player 0 is attacking
-        std::vector<Piece *> m_takenPieces;
-		bool m_verbose;		
-        bool m_showdisplay;
+        BoardStates m_boardStates;
 };

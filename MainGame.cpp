@@ -87,8 +87,8 @@ void MainGame::run(){
     
     //pawns piecetype = 0
 	for (int i = 0; i < 8; i++) {
-		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, m_showdisplay));
-		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, m_showdisplay)); 
+		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, m_showdisplay,i));//last arg is id for pawns
+		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, m_showdisplay,i)); 
 	}
 	//rooks piecetype = 1
 	m_board.setPiece(0,0, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 0), 0, 1, m_showdisplay));
@@ -117,7 +117,8 @@ void MainGame::run(){
 			m_board.setPiece(i,j, nullptr);
 		}
 	}
-    m_board.calculateAllMoves();    
+    m_board.calculateNextTurnMoves(0);  
+
     if (m_verbose){
         std::cout<<"******************************";
         std::cout<<" Starting Game ";

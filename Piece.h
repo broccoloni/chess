@@ -10,10 +10,9 @@ class Piece
 	public:
         Piece(); // to instantiate and use texturepath function
 		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay);	
+		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay, unsigned int pieceID);	
 		~Piece();
 			
-		int m_timesMoved;
-
         std::string texturePath(int pieceType, int pieceColour);
         void setTexture();
         void draw(SpriteBatch& spriteBatch, int boardOrientation);
@@ -38,7 +37,8 @@ class Piece
 		int type() { return m_pieceType; }
 		int colour() { return m_pieceColour; }
 		int timesMoved() { return m_timesMoved; }
-		bool isBeingHeld() { return m_beingHeld; }
+		unsigned int ID() {return m_id; }
+        bool isBeingHeld() { return m_beingHeld; }
 		bool isClickedOn() { return m_clickedOn; }
         bool wasJustMoved() { return m_justMoved; }        	
 		bool isAMove(int x, int y);
@@ -51,10 +51,12 @@ class Piece
         bool m_justMoved;	
         bool m_showdisplay;    
         bool m_isCaptured;
+		int m_timesMoved;
 		int m_pieceType;
 		int m_pieceColour;
 		int m_boardStart;
 		int m_squareSize;
+        unsigned int m_id; // only used for pawns
         float m_depth;
 		glm::vec2 m_pos;
 		glm::vec2 m_boardPos;

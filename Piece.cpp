@@ -22,6 +22,26 @@ Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour
 	m_pos = tileToPos(boardPos);
     m_origPos = m_pos;
     m_showdisplay = showdisplay;
+    m_id = 0;
+	if (showdisplay) setTexture();
+}
+
+Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay, unsigned int pieceID){
+    m_beingHeld = false;
+	m_clickedOn = false;
+    m_justMoved = false;
+    m_isCaptured = false;
+    m_boardStart = boardStart;
+	m_squareSize = squareSize;
+    m_depth = 2.0f;
+	m_pieceColour = pieceColour;
+	m_pieceType = pieceType;
+	m_timesMoved = 0;
+	m_boardPos = boardPos;
+	m_pos = tileToPos(boardPos);
+    m_origPos = m_pos;
+    m_showdisplay = showdisplay;
+    m_id = pieceID;
 	if (showdisplay) setTexture();
 }
 

@@ -980,6 +980,22 @@ int Board::calculateNextTurnMoves(int nextTurnColour){
     //Prune moves to get out of checks and not move pinned pieces
     pruneMovesForChecksAndPins(oppking);
 
+    if (m_verbose) std::cout<<"Adding board state"<<std::endl;
+    int numreps = m_boardStates.addState(m_pieces);
+    if (m_verbose) std::cout<<"Number of repetitions: "<<numreps<<std::endl;
+    //printing latest board
+    /*
+    int board[8][8] = m_boardStates.getBoard();
+    for (unsigned int i = 0; i < 8; i++){
+        for (unsigned int j = 0; j < 8; j++){
+            std::cout<<board[i][j]<<" ";
+        }
+        std::cout::std::endl;
+    }
+    std::cout<<std::endl;
+    */
+    if (numreps == 3) return -1; 
+
     //return -1 if draw, 0 if win/loss, number of moves otherwise
     int numMoves = sumMoves(nextTurnColour);
     if (numMoves == 0 && isKingInCheck(oppking)) return 0;
