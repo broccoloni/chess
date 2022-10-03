@@ -20,7 +20,7 @@ enum class GameState {PLAY, EXIT, DRAW, WHITEWINS, BLACKWINS};
 class MainGame
 {
 	public:
-		MainGame(bool verbose, bool showdisplay);
+		MainGame(bool verbose, unsigned int mode);
 		~MainGame();
 
 		unsigned int run();
@@ -45,9 +45,9 @@ class MainGame
 		int m_moveNum;
 		int m_turnColour;
         int m_boardOrientation;
+        unsigned int m_mode;
         bool m_curPieceExists;
         bool m_verbose;
-        bool m_showdisplay;
         bool m_autoflip;
         bool m_isPromoting;
         glm::vec2 m_mouseTile;

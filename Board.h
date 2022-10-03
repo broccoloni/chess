@@ -13,7 +13,7 @@ class Board
 		Board();
 		~Board();
 
-		void init(int boardStart, int squareSize, bool verbose, bool showdisplay);
+		void init(int boardStart, int squareSize, bool verbose, unsigned int mode);
 		void draw(SpriteBatch& spriteBatch, int boardOrientation);
 		glm::vec2 getTile(glm::vec2 mouseCoords, int boardOrientation);
 		Piece* isOccupied(glm::vec2 tile);
@@ -51,7 +51,7 @@ class Board
         int m_movesSinceCaptureOrPawnMove;
         int m_attackers[2][8][8]; //each player x 8 x 8 board attackers[0][:][:] are locations player 0 is attacking
         bool m_verbose;		
-        bool m_showdisplay;
+        unsigned int m_mode;
         std::vector<Piece *> m_takenPieces;
 		GLTexture m_lightSquare;
 		GLTexture m_darkSquare;

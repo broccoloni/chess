@@ -7,7 +7,7 @@ Piece::Piece(){
 
 }
 
-Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay){
+Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, unsigned int mode){
     m_beingHeld = false;
 	m_clickedOn = false;
     m_justMoved = false;
@@ -21,12 +21,12 @@ Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour
 	m_boardPos = boardPos;
 	m_pos = tileToPos(boardPos);
     m_origPos = m_pos;
-    m_showdisplay = showdisplay;
+    m_mode = mode;
     m_id = 0;
-	if (showdisplay) setTexture();
+	if (mode == 0) setTexture();
 }
 
-Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay, unsigned int pieceID){
+Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, unsigned int mode, unsigned int pieceID){
     m_beingHeld = false;
 	m_clickedOn = false;
     m_justMoved = false;
@@ -40,9 +40,9 @@ Piece::Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour
 	m_boardPos = boardPos;
 	m_pos = tileToPos(boardPos);
     m_origPos = m_pos;
-    m_showdisplay = showdisplay;
+    m_mode = mode;
     m_id = pieceID;
-	if (showdisplay) setTexture();
+	if (mode == 0) setTexture();
 }
 
 Piece::~Piece(){
@@ -144,7 +144,7 @@ bool Piece::isAMove(glm::vec2 pos){
 
 void Piece::promote(int newType){
     m_pieceType = newType;
-    if (m_showdisplay) setTexture();
+    if (m_mode == 0) setTexture();
 }
 
 

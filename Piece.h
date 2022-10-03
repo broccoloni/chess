@@ -9,8 +9,8 @@ class Piece
 {
 	public:
         Piece(); // to instantiate and use texturepath function
-		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay);	
-		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, bool showdisplay, unsigned int pieceID);	
+		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, unsigned int mode);	
+		Piece(int boardStart, int squareSize, glm::vec2 boardPos, int pieceColour, int pieceType, unsigned int mode, unsigned int pieceID);	
 		~Piece();
 			
         std::string texturePath(int pieceType, int pieceColour);
@@ -49,13 +49,13 @@ class Piece
 		bool m_beingHeld;
 		bool m_clickedOn;
         bool m_justMoved;	
-        bool m_showdisplay;    
         bool m_isCaptured;
 		int m_timesMoved;
 		int m_pieceType;
 		int m_pieceColour;
 		int m_boardStart;
 		int m_squareSize;
+        unsigned int m_mode;    
         unsigned int m_id; // only used for pawns
         float m_depth;
 		glm::vec2 m_pos;

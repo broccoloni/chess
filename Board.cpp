@@ -9,11 +9,11 @@ Board::~Board(){
 
 }
 
-void Board::init(int boardStart, int squareSize, bool verbose, bool showdisplay){
+void Board::init(int boardStart, int squareSize, bool verbose, unsigned int mode){
 	m_verbose = verbose;
-    m_showdisplay = showdisplay;
+    m_mode = mode;
     m_movesSinceCaptureOrPawnMove = 0;
-    if (showdisplay){
+    if (mode == 0){
         m_boardStart = boardStart;
     	m_squareSize = squareSize;
 	    m_lightSquare = ResourceManager::getTexture("textures/lightwood2.png");

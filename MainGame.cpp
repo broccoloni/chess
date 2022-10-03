@@ -5,13 +5,14 @@
 #include <Engine.h>
 #include <ResourceManager.h>
 
-MainGame::MainGame(bool verbose, bool showdisplay){
+MainGame::MainGame(bool verbose, unsigned int mode){
     m_screenWidth = 1600; 
     m_screenHeight = 900; 
     m_boardSize = 750;
     m_moveNum = 0;
     m_turnColour = 0;
     m_boardOrientation = 0;
+    m_mode = mode;
     m_curPieceExists = false;
     m_autoflip = true;
     m_isPromoting = false;
@@ -28,7 +29,6 @@ MainGame::MainGame(bool verbose, bool showdisplay){
 	m_squareSize = m_boardSize/8;
 	m_camera.init(m_screenWidth, m_screenHeight);
     m_verbose = verbose;
-    m_showdisplay = showdisplay;
 }
 
 MainGame::~MainGame(){
@@ -36,7 +36,7 @@ MainGame::~MainGame(){
 }
 
 unsigned int MainGame::run(){
-    if (m_showdisplay){
+    if (m_mode == 0){
         //NOTE: 0,0 is center of the screen
         initSystems();
     
@@ -83,34 +83,34 @@ unsigned int MainGame::run(){
             m_promoBoxes[i+10].setDepth(5.0f);
         }
     }
-	m_board.init(m_boardStart, m_squareSize, m_verbose, m_showdisplay);
+	m_board.init(m_boardStart, m_squareSize, m_verbose, m_mode);
     
     //pawns piecetype = 0
 	for (int i = 0; i < 8; i++) {
-		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, m_showdisplay,i));//last arg is id for pawns
-		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, m_showdisplay,i)); 
+		m_board.setPiece(i,1, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 1), 0, 0, m_mode,i));//last arg is id for pawns
+		m_board.setPiece(i,6, new Piece(m_boardStart, m_squareSize, glm::vec2(i, 6), 1, 0, m_mode,i)); 
 	}
 	//rooks piecetype = 1
-	m_board.setPiece(0,0, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 0), 0, 1, m_showdisplay));
-	m_board.setPiece(0,7, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 7), 1, 1, m_showdisplay));
-	m_board.setPiece(7,0, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 0), 0, 1, m_showdisplay));
-	m_board.setPiece(7,7, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 7), 1, 1, m_showdisplay));
+	m_board.setPiece(0,0, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 0), 0, 1, m_mode));
+	m_board.setPiece(0,7, new Piece(m_boardStart, m_squareSize, glm::vec2(0, 7), 1, 1, m_mode));
+	m_board.setPiece(7,0, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 0), 0, 1, m_mode));
+	m_board.setPiece(7,7, new Piece(m_boardStart, m_squareSize, glm::vec2(7, 7), 1, 1, m_mode));
 	//knights piecetype = 2
-	m_board.setPiece(1,0, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 0), 0, 2, m_showdisplay));
-	m_board.setPiece(1,7, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 7), 1, 2, m_showdisplay));
-	m_board.setPiece(6,0, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 0), 0, 2, m_showdisplay));
-	m_board.setPiece(6,7, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 7), 1, 2, m_showdisplay));
+	m_board.setPiece(1,0, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 0), 0, 2, m_mode));
+	m_board.setPiece(1,7, new Piece(m_boardStart, m_squareSize, glm::vec2(1, 7), 1, 2, m_mode));
+	m_board.setPiece(6,0, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 0), 0, 2, m_mode));
+	m_board.setPiece(6,7, new Piece(m_boardStart, m_squareSize, glm::vec2(6, 7), 1, 2, m_mode));
 	//bishops piecetype = 3
-	m_board.setPiece(2,0, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 0), 0, 3, m_showdisplay));
-	m_board.setPiece(2,7, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 7), 1, 3, m_showdisplay));
-	m_board.setPiece(5,0, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 0), 0, 3, m_showdisplay));
-	m_board.setPiece(5,7, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 7), 1, 3, m_showdisplay));
+	m_board.setPiece(2,0, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 0), 0, 3, m_mode));
+	m_board.setPiece(2,7, new Piece(m_boardStart, m_squareSize, glm::vec2(2, 7), 1, 3, m_mode));
+	m_board.setPiece(5,0, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 0), 0, 3, m_mode));
+	m_board.setPiece(5,7, new Piece(m_boardStart, m_squareSize, glm::vec2(5, 7), 1, 3, m_mode));
 	//queens piecetype = 4
-	m_board.setPiece(3,0, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 0), 0, 4, m_showdisplay));
-	m_board.setPiece(3,7, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 7), 1, 4, m_showdisplay));
+	m_board.setPiece(3,0, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 0), 0, 4, m_mode));
+	m_board.setPiece(3,7, new Piece(m_boardStart, m_squareSize, glm::vec2(3, 7), 1, 4, m_mode));
 	//kings piecetype = 5
-	m_board.setPiece(4,0, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 0), 0, 5, m_showdisplay));
-	m_board.setPiece(4,7, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 7), 1, 5, m_showdisplay));
+	m_board.setPiece(4,0, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 0), 0, 5, m_mode));
+	m_board.setPiece(4,7, new Piece(m_boardStart, m_squareSize, glm::vec2(4, 7), 1, 5, m_mode));
 
 	for (int j = 2; j < 6; j++){
 		for (int i = 0; i < 8; i++){
@@ -156,7 +156,8 @@ void MainGame::gameLoop(){
 
     //start game loop
     while (m_gameState == GameState::PLAY){
-        if (m_showdisplay){
+        //full display mode
+        if (m_mode == 0){
             m_fpsLimiter.begin();
 
             processInput();
@@ -179,7 +180,8 @@ void MainGame::gameLoop(){
             }
             */
         }
-        else{
+        //human controlled command line display mode
+        else if (m_mode == 1){
             std::cout << "Enter the location of the piece you wish to move (Eg. a1): ";
             std::cin >> loc;
             file = (int) tolower(loc[0])-97;
@@ -227,6 +229,10 @@ void MainGame::gameLoop(){
                 std::cout<<"Invlaid move"<<std::endl;
                 continue;
             }
+        }
+        //train ai mode - no output
+        else{
+            
         }
 	}
 }
@@ -442,7 +448,7 @@ void MainGame::processInput(){
             }
         }
         //no current piece exists
-        else{
+        else {
             //Check if tile is occupied by a piece
             if (m_board.isOccupied(m_mouseTile) != nullptr){
                 //if piece is players (not opponents)
