@@ -13,5 +13,6 @@ as I have a chromebook that would require that. To play the game, run ./Chess in
 flag to see other optional flags (Note: the AI hasn't been implemented yet).
 
 Here's a video of sample play (Note: the mouse was flipped by the screen recording and not by the game)
-
-![](Images/chess_example.mov)
+<video width = "320" height= "320" controls>
+    <source src="https://github.com/broccoloni/chess/Images/chess_example.mov" type="video/mov">
+</video>
